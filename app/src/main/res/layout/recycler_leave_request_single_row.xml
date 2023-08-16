@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/employeeItem"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="10dp"
+        android:layout_marginVertical="7dp"
+        app:cardCornerRadius="10dp"
+        app:cardElevation="5dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/txtLeaveRequestDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="yyyy-MM-dd HH:mm:ss"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/txtLeaveRequestStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pending"
+                android:textStyle="bold"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="10dp"
+                android:layout_marginTop="10dp"/>
+
+            <TextView
+                android:id="@+id/txtLeaveRequestReasonHead"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Reason:"
+                android:layout_below="@id/txtLeaveRequestDate"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="5dp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/txtLeaveRequestReason"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Im not well"
+                android:layout_below="@id/txtLeaveRequestDate"
+                android:layout_toEndOf="@id/txtLeaveRequestReasonHead"
+                android:layout_marginStart="5dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginTop="5dp"/>
+
+            <TextView
+                android:id="@+id/txtLeaveRequestFromHead"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="From:"
+                android:layout_below="@id/txtLeaveRequestReason"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="5dp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/txtLeaveRequestFrom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="yyyy-MM-dd"
+                android:layout_below="@id/txtLeaveRequestReason"
+                android:layout_toEndOf="@id/txtLeaveRequestFromHead"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="5dp"/>
+
+            <TextView
+                android:id="@+id/txtLeaveRequestToHead"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="To:"
+                android:layout_below="@id/txtLeaveRequestReason"
+                android:layout_toEndOf="@id/txtLeaveRequestFrom"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="5dp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/txtLeaveRequestTo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="yyyy-MM-dd"
+                android:layout_below="@id/txtLeaveRequestReason"
+                android:layout_toEndOf="@id/txtLeaveRequestToHead"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="5dp"/>
+
+            <TextView
+                android:id="@+id/txtLeaveRequestLeaveTypeHead"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Leave type:"
+                android:layout_below="@id/txtLeaveRequestFromHead"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="5dp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/txtLeaveRequestLeaveType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CL"
+                android:layout_below="@id/txtLeaveRequestFromHead"
+                android:layout_toEndOf="@id/txtLeaveRequestLeaveTypeHead"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="5dp"/>
+
+            <TextView
+                android:id="@+id/txtLeaveRequestNoOfLeavesHead"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No of leaves:"
+                android:layout_below="@id/txtLeaveRequestLeaveTypeHead"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="5dp"
+                android:textStyle="bold"
+                />
+
+            <TextView
+                android:id="@+id/txtLeaveRequestNoOfLeaves"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="4"
+                android:layout_below="@id/txtLeaveRequestLeaveTypeHead"
+                android:layout_toEndOf="@id/txtLeaveRequestNoOfLeavesHead"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="5dp" />
+
+            <TextView
+                android:id="@+id/txtLeaveRequestNoteHead"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Note:"
+                android:layout_below="@id/txtLeaveRequestNoOfLeavesHead"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="5dp"
+                android:textStyle="bold"
+                android:layout_marginBottom="10dp"/>
+
+            <TextView
+                android:id="@+id/txtLeaveRequestNote"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="..."
+                android:layout_below="@id/txtLeaveRequestNoOfLeavesHead"
+                android:layout_toEndOf="@id/txtLeaveRequestNoteHead"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="10dp"/>
+
+        </RelativeLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</RelativeLayout>

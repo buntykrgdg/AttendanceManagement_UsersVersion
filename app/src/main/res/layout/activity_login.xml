@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activities.Login_Activity">
+
+    <ImageView
+        android:id="@+id/imgLogoRegistrationpage"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="40dp"
+        />
+
+    <TextView
+        android:id="@+id/txtHeading"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="We will send you OTP on entered number"
+        android:textSize="20sp"
+        android:textAlignment="center"
+        android:layout_below="@id/imgLogoRegistrationpage"
+        android:padding="20dp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/CompanyIDLYT"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Company/Institution ID"
+        app:endIconMode="clear_text"
+        android:layout_below="@id/txtHeading"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/CompanyID"
+            android:inputType="textCapCharacters"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.hbb20.CountryCodePicker
+        android:id="@+id/countyrycodepicker"
+        android:layout_below="@id/CompanyIDLYT"
+        android:layout_marginTop="30dp"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        app:ccp_areaCodeDetectedCountry="true"
+        android:layout_marginLeft="100dp"
+        android:layout_marginRight="100dp"
+        app:ccp_autoDetectCountry="true"
+        android:layout_marginBottom="10dp" />
+
+    <EditText
+        android:id="@+id/edtxtGetphonenumber"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginLeft="70dp"
+        android:layout_marginRight="70dp"
+        android:textAlignment="center"
+        android:inputType="number"
+        android:hint="Enter your number here"
+        android:textColorHint="@color/black"
+        android:textColor="#000000"
+        android:layout_marginTop="10dp"
+        android:layout_below="@id/countyrycodepicker"
+        />
+
+    <Button
+        android:id="@+id/btnSendOtpButton"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_below="@id/edtxtGetphonenumber"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"
+        android:paddingLeft="40dp"
+        android:paddingRight="40dp"
+        android:text="Send OTP"
+        android:textSize="15sp"
+        android:backgroundTint="@color/black"
+        />
+
+    <ProgressBar
+        android:id="@+id/progressbarofmain"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/btnSendOtpButton"
+        android:visibility="invisible"
+        android:layout_marginTop="30dp"
+        />
+
+</RelativeLayout>

@@ -1,0 +1,85 @@
+{
+  "project_info": {
+    "project_number": "920978490340",
+    "firebase_url": "https://attendancemanagement-38b82-default-rtdb.firebaseio.com",
+    "project_id": "attendancemanagement-38b82",
+    "storage_bucket": "attendancemanagement-38b82.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:920978490340:android:383e2bebb9b7f52332fdf1",
+        "android_client_info": {
+          "package_name": "com.buntykrgdg.attendancemanagement_admin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "920978490340-445tl83uemkl3c4nq47dofehkvpgjq4g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.buntykrgdg.attendancemanagement_admin",
+            "certificate_hash": "ec69670574458ac377a474a56870b220b980874c"
+          }
+        },
+        {
+          "client_id": "920978490340-5qesulg7ppftfm1t7c0t985kgf82hpha.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAfroxFgNLkgjdMGxhlzADJUFE3nDB-0Hg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "920978490340-5qesulg7ppftfm1t7c0t985kgf82hpha.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:920978490340:android:7e4e2ea4479bf0b832fdf1",
+        "android_client_info": {
+          "package_name": "com.buntykrgdg.attendancemanagementusersversion"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "920978490340-eik143d27d3gruomcce4p33rmu3bmb7e.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.buntykrgdg.attendancemanagementusersversion",
+            "certificate_hash": "ec69670574458ac377a474a56870b220b980874c"
+          }
+        },
+        {
+          "client_id": "920978490340-5qesulg7ppftfm1t7c0t985kgf82hpha.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAfroxFgNLkgjdMGxhlzADJUFE3nDB-0Hg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "920978490340-5qesulg7ppftfm1t7c0t985kgf82hpha.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

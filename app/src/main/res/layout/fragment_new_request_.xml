@@ -1,0 +1,648 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".fragments.NewRequest_Fragment">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/txtDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="10dp"
+        android:text="01/01/2023"
+        android:textColor="@color/black"
+        android:textSize="25sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/txtTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:text="12:00"
+        android:textColor="@color/black"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/txtDay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/txtDate"
+        android:layout_marginStart="15dp"
+        android:text="Monday"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/txtSession"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@id/txtDate"
+        android:layout_marginStart="15dp"
+        android:layout_marginEnd="10dp"
+        android:text="session"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/CVRemainingleaves"
+        android:layout_below="@id/txtDay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="#DDDBDB"
+        android:layout_marginHorizontal="15dp"
+        android:layout_marginTop="15dp"
+        android:visibility="visible"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="5dp">
+
+        <LinearLayout
+            android:layout_marginHorizontal="10dp"
+            android:layout_marginVertical="8dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="6">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_weight="2">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="CL"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:textSize="20sp"
+                    android:gravity="center"/>
+                <TextView
+                    android:id="@+id/txtCLcount"
+                    android:layout_marginTop="5dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="14"
+                    android:textSize="17sp"
+                    android:gravity="center"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_weight="2">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="HPL"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:textSize="20sp"
+                    android:gravity="center"/>
+                <TextView
+                    android:id="@+id/txtHPLcount"
+                    android:layout_marginTop="5dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="14"
+                    android:textSize="17sp"
+                    android:gravity="center"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_weight="2">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="EL"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:textSize="20sp"
+                    android:gravity="center"/>
+                <TextView
+                    android:id="@+id/txtELcount"
+                    android:layout_marginTop="5dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="14"
+                    android:textSize="17sp"
+                    android:gravity="center"/>
+            </LinearLayout>
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+        <ProgressBar
+            android:id="@+id/progressbarofNewRequest"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/CVRemainingleaves"
+            android:layout_centerInParent="true"
+            android:layout_marginTop="30dp"
+            android:visibility="gone" />
+
+        <RadioGroup
+            android:id="@+id/RDLeaveRange"
+            android:layout_below="@id/CVRemainingleaves"
+            android:layout_marginTop="100dp"
+            android:layout_marginStart="30dp"
+            android:layout_marginEnd="30dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:weightSum="6"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/RBHalfDay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:text="Half Day" />
+
+            <RadioButton
+                android:id="@+id/RBOneDay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:text="Full Day" />
+
+            <RadioButton
+                android:id="@+id/RBMorethanOne"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:text="More than 1 Day" />
+
+        </RadioGroup>
+
+        <RelativeLayout
+            android:id="@+id/RLHalfDay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/RDLeaveRange"
+            android:visibility="gone">
+
+            <EditText
+                android:id="@+id/halfdayleavedate"
+                android:layout_width="250dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="30dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:hint="Date"
+                android:focusable="false"
+                android:inputType="date" />
+
+            <RadioGroup
+                android:id="@+id/RGHalfDay"
+                android:layout_below="@id/halfdayleavedate"
+                android:layout_marginStart="30dp"
+                android:layout_marginEnd="30dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/HalfDaymorningRadioBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Morning session" />
+
+                <RadioButton
+                    android:id="@+id/HalfDayafternoonRadioBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Afternoon session" />
+
+            </RadioGroup>
+
+            <ImageButton
+                android:id="@+id/btnHalfDaydate"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:textSize="15sp"
+                android:foregroundGravity="center"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="8dp"
+                android:layout_toEndOf="@id/halfdayleavedate"
+                android:background="@drawable/baseline_calendar_month_24"
+                />
+
+            <RadioGroup
+                android:id="@+id/RGHalfDayLeaveTypeSelection"
+                android:layout_below="@id/RGHalfDay"
+                android:layout_marginStart="30dp"
+                android:layout_marginEnd="30dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/HalfDayCLRadioBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="CL" />
+
+                <RadioButton
+                    android:id="@+id/HalfDayHPLRadioBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="HPL" />
+
+                <RadioButton
+                    android:id="@+id/HalfDayELRadioBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="EL" />
+
+            </RadioGroup>
+
+            <TextView
+                android:id="@+id/txtHalfDayNoofleavesHead"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No of leaves: "
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:layout_marginStart="34dp"
+                android:layout_below="@id/RGHalfDayLeaveTypeSelection"/>
+
+            <TextView
+                android:id="@+id/txtHalfDayNoofleaves"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:layout_below="@id/RGHalfDayLeaveTypeSelection"
+                android:layout_toRightOf="@id/txtHalfDayNoofleavesHead"/>
+
+            <TextView
+                android:id="@+id/txtHalfDayNote"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="10sp"
+                android:textStyle="italic"
+                android:textColor="#E82E2E"
+                android:layout_marginStart="34dp"
+                android:visibility="gone"
+                android:layout_below="@id/txtHalfDayNoofleavesHead"/>
+
+            <EditText
+                android:id="@+id/ETHalfDayleaveReason"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:inputType="textCapSentences"
+                android:hint="Reason"
+                android:layout_marginLeft="30dp"
+                android:layout_marginRight="30dp"
+                android:layout_below="@id/txtHalfDayNoofleavesHead"
+                />
+
+            <Button
+                android:id="@+id/btnSendRequestHalfDay"
+                android:layout_below="@id/ETHalfDayleaveReason"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="10dp"
+                android:textColor="@color/primary"
+                android:text="Send Request"
+                android:textSize="15sp"
+                android:backgroundTint="@color/card_background"
+                />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/RLOneDay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/RDLeaveRange"
+            android:visibility="gone">
+
+            <EditText
+                android:id="@+id/onedayleavedate"
+                android:layout_width="250dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="30dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:hint="Date"
+                android:focusable="false"
+                android:inputType="date" />
+
+            <ImageButton
+                android:id="@+id/btnSelectonedayleavedate"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:textSize="15sp"
+                android:foregroundGravity="center"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="8dp"
+                android:layout_toEndOf="@id/onedayleavedate"
+                android:background="@drawable/baseline_calendar_month_24"
+                />
+
+            <RadioGroup
+                android:id="@+id/RGOneDayLeaveTypeSelection"
+                android:layout_below="@id/onedayleavedate"
+                android:layout_marginStart="30dp"
+                android:layout_marginEnd="30dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/OneDayCLRadioBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="CL" />
+
+                <RadioButton
+                    android:id="@+id/OneDayHPLRadioBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="HPL" />
+
+                <RadioButton
+                    android:id="@+id/OneDayELRadioBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="EL" />
+
+            </RadioGroup>
+
+            <TextView
+                android:id="@+id/txtOneDayNoofleavesHead"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No of leaves: "
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:layout_marginStart="34dp"
+                android:layout_below="@id/RGOneDayLeaveTypeSelection"/>
+
+            <TextView
+                android:id="@+id/txtOneDayNoofleaves"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:layout_below="@id/RGOneDayLeaveTypeSelection"
+                android:layout_toRightOf="@id/txtOneDayNoofleavesHead"/>
+
+            <TextView
+                android:id="@+id/txtOneDayNote"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="10sp"
+                android:textStyle="italic"
+                android:textColor="#E82E2E"
+                android:layout_marginStart="34dp"
+                android:visibility="gone"
+                android:layout_below="@id/txtOneDayNoofleavesHead"/>
+
+            <EditText
+                android:id="@+id/ETonedayleaveReason"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:inputType="textCapSentences"
+                android:hint="Reason"
+                android:layout_marginLeft="30dp"
+                android:layout_marginRight="30dp"
+                android:layout_below="@id/txtOneDayNoofleavesHead"
+                />
+
+            <Button
+                android:id="@+id/btnSendRequestOneDay"
+                android:layout_below="@id/ETonedayleaveReason"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="10dp"
+                android:textColor="@color/primary"
+                android:text="Send Request"
+                android:textSize="15sp"
+                android:backgroundTint="@color/card_background"
+                />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/RLMorethan1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/RDLeaveRange"
+            android:visibility="gone">
+
+            <EditText
+                android:id="@+id/leavefromdate"
+                android:layout_width="250dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="30dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:hint="From"
+                android:focusable="false"
+                android:inputType="date" />
+
+            <RadioGroup
+                android:id="@+id/RGradiofrom"
+                android:layout_below="@id/leavefromdate"
+                android:layout_marginStart="30dp"
+                android:layout_marginEnd="30dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/FrommorningRadioBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Morning session" />
+
+                <RadioButton
+                    android:id="@+id/FromafternoonRadioBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Afternoon session" />
+
+            </RadioGroup>
+
+            <ImageButton
+                android:id="@+id/btnSelectfromdate"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:textSize="15sp"
+                android:foregroundGravity="center"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="8dp"
+                android:layout_toEndOf="@id/leavefromdate"
+                android:background="@drawable/baseline_calendar_month_24"
+                />
+
+            <EditText
+                android:id="@+id/leavetodate"
+                android:layout_width="250dp"
+                android:layout_height="50dp"
+                android:hint="To"
+                android:inputType="date"
+                android:layout_marginStart="30dp"
+                android:layout_marginEnd="10dp"
+                android:focusable="false"
+                android:layout_below="@id/RGradiofrom"
+                />
+
+            <RadioGroup
+                android:id="@+id/RGradioto"
+                android:layout_below="@id/leavetodate"
+                android:layout_marginStart="30dp"
+                android:layout_marginEnd="30dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/TomorningRadioBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Morning session" />
+
+                <RadioButton
+                    android:id="@+id/ToafternoonRadioBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Afternoon session" />
+
+            </RadioGroup>
+
+            <ImageButton
+                android:id="@+id/btnSelecttodate"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:textSize="15sp"
+                android:foregroundGravity="center"
+                android:layout_marginEnd="20dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:layout_toRightOf="@id/leavetodate"
+                android:layout_below="@id/RGradiofrom"
+                android:background="@drawable/baseline_calendar_month_24"
+                />
+
+            <RadioGroup
+                android:id="@+id/RGMorethanOneDayLeaveTypeSelection"
+                android:layout_below="@id/RGradioto"
+                android:layout_marginStart="30dp"
+                android:layout_marginEnd="30dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/MorethanOneDayCLRadioBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="CL" />
+
+                <RadioButton
+                    android:id="@+id/MorethanOneDayHPLRadioBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="HPL" />
+
+                <RadioButton
+                    android:id="@+id/MorethanOneDayELRadioBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="EL" />
+
+            </RadioGroup>
+
+            <TextView
+                android:id="@+id/txtMorethanOneDayNoofleavesHead"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No of leaves: "
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:layout_marginStart="34dp"
+                android:layout_below="@id/RGMorethanOneDayLeaveTypeSelection"/>
+
+            <TextView
+                android:id="@+id/txtMorethanOneDayNoofleaves"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:layout_below="@id/RGMorethanOneDayLeaveTypeSelection"
+                android:layout_toRightOf="@id/txtMorethanOneDayNoofleavesHead"/>
+
+            <TextView
+                android:id="@+id/txtMoreThanOneDayNote"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="10sp"
+                android:textStyle="italic"
+                android:textColor="#E82E2E"
+                android:layout_marginStart="34dp"
+                android:visibility="gone"
+                android:layout_below="@id/txtMorethanOneDayNoofleavesHead"/>
+
+            <EditText
+                android:id="@+id/ETleaveReason"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:inputType="textCapSentences"
+                android:hint="Reason"
+                android:layout_marginLeft="30dp"
+                android:layout_marginRight="30dp"
+                android:layout_below="@id/txtMorethanOneDayNoofleavesHead"
+                />
+
+            <Button
+                android:id="@+id/btnSendRequestMorethan1"
+                android:layout_below="@id/ETleaveReason"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="10dp"
+                android:textColor="@color/primary"
+                android:text="Send Request"
+                android:textSize="15sp"
+                android:backgroundTint="@color/card_background"
+                />
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+</ScrollView>
