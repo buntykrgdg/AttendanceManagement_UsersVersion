@@ -7,16 +7,19 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.buntykrgdg.attendancemanagementusersversion.MyFirebaseMessagingService
+import com.buntykrgdg.attendancemanagementusersversion.NoticesActivity
+import com.buntykrgdg.attendancemanagementusersversion.R
 import com.buntykrgdg.attendancemanagementusersversion.fragments.History_Fragment
 import com.buntykrgdg.attendancemanagementusersversion.fragments.NewRequest_Fragment
 import com.buntykrgdg.attendancemanagementusersversion.fragments.Profile_Fragment
-import com.buntykrgdg.attendancemanagementusersversion.R
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -62,6 +65,20 @@ class MainActivity : AppCompatActivity() {
         }
 
         requestPermission()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.allnotices_options_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {//Opens the drawerLayout when hamburger button is pressed
+        val id = item.itemId
+        if (id == R.id.options_menu_notices){
+            val intent = Intent(this@MainActivity, NoticesActivity::class.java)
+            startActivity(intent)
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     private fun setCurrentFragment(fragment: Fragment)=
