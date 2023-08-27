@@ -3,19 +3,15 @@ package com.buntykrgdg.attendancemanagementusersversion.activities
 import android.Manifest
 import android.content.ContentValues
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.buntykrgdg.attendancemanagementusersversion.NoticesActivity
+import com.buntykrgdg.attendancemanagementusersversion.fragments.Notices_Fragment
 import com.buntykrgdg.attendancemanagementusersversion.R
 import com.buntykrgdg.attendancemanagementusersversion.fragments.History_Fragment
 import com.buntykrgdg.attendancemanagementusersversion.fragments.NewRequest_Fragment
@@ -30,27 +26,35 @@ import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     lateinit var bottomNavigationView: BottomNavigationView
-
     private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
     private var isReadPermissionGranted = false
     private var isLocationPermissionGranted = false
+    private val notificationCount: Int = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         getfcmtoken() //Remove getfcmtoken()
 
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
         val firstFragment = NewRequest_Fragment()
         val secondFragment = History_Fragment()
         val thirdFragment = Profile_Fragment()
+        val fourthFragment = Notices_Fragment()
 
         setCurrentFragment(firstFragment)
+
+        /*bottomNavigationView.getOrCreateBadge(R.id.notices_menu).apply {
+
+        }*/
 
         bottomNavigationView.setOnNavigationItemSelectedListener {
             when(it.itemId){
                 R.id.newRequest_menu ->setCurrentFragment(firstFragment)
                 R.id.history_menu ->setCurrentFragment(secondFragment)
                 R.id.profile_menu ->setCurrentFragment(thirdFragment)
+                R.id.notices_menu ->setCurrentFragment(fourthFragment)
             }
             true
         }
@@ -65,20 +69,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         requestPermission()
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.allnotices_options_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {//Opens the drawerLayout when hamburger button is pressed
-        val id = item.itemId
-        if (id == R.id.options_menu_notices){
-            val intent = Intent(this@MainActivity, NoticesActivity::class.java)
-            startActivity(intent)
-        }
-        return super.onOptionsItemSelected(item)
     }
 
     private fun setCurrentFragment(fragment: Fragment)=

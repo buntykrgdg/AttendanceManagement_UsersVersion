@@ -20,6 +20,7 @@ import com.buntykrgdg.attendancemanagementusersversion.R
 import com.google.android.material.card.MaterialCardView
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
@@ -822,9 +823,7 @@ class NewRequest_Fragment : Fragment() {
             database = FirebaseFirestore.getInstance()
             val doc = database.collection("Institutions").document(instituteid).get().await()
             val fcmtoken = doc.get("fcmToken").toString()
-
             val url = "https://fcm.googleapis.com/fcm/send"
-
             val jsonObject = JSONObject()
             val notificationObject = JSONObject()
             notificationObject.put("title", "Attendance Management")

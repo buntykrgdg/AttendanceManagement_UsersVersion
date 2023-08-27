@@ -4,10 +4,17 @@
         android:id="@+id/newRequest_menu"
         android:title="New Request"
         android:icon="@drawable/baseline_edit_note_24"/>
+
     <item
         android:id="@+id/history_menu"
         android:title="History"
         android:icon="@drawable/baseline_history_24"/>
+
+    <item
+        android:id="@+id/notices_menu"
+        android:title="Notices"
+        android:icon="@drawable/baseline_circle_notifications_24"/>
+
     <item
         android:id="@+id/profile_menu"
         android:title="Profile"

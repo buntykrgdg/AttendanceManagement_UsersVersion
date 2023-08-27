@@ -1,18 +1,21 @@
-package com.buntykrgdg.attendancemanagementusersversion
+package com.buntykrgdg.attendancemanagementusersversion.fragments
 
 import android.annotation.SuppressLint
 import android.content.Context
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import androidx.fragment.app.Fragment
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.RelativeLayout
 import android.widget.SearchView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.buntykrgdg.attendancemanagementusersversion.classes.AllNoticesAdapter
+import com.buntykrgdg.attendancemanagementusersversion.R
+import com.buntykrgdg.attendancemanagementusersversion.classes.adapters.AllNoticesAdapter
 import com.buntykrgdg.attendancemanagementusersversion.classes.Notice
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -23,8 +26,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.util.Locale
-
-class NoticesActivity : AppCompatActivity() {
+class Notices_Fragment : Fragment() {
     private lateinit var progressLayout: RelativeLayout
     private lateinit var progressBar: ProgressBar
     private lateinit var swipeToRefreshAllNotices: SwipeRefreshLayout
@@ -36,24 +38,25 @@ class NoticesActivity : AppCompatActivity() {
     private lateinit var tempArrayList: ArrayList<Notice>
     private val db = FirebaseFirestore.getInstance()
     private lateinit var instituteid: String
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_notices)
-
-        swipeToRefreshAllNotices=findViewById(R.id.swipeToRefreshAllNotices)
-        recyclerviewAllNotices=findViewById(R.id.recyclerviewAllNotices)
-        progressLayout=findViewById(R.id.progresslayoutAllNotices)
-        progressBar=findViewById(R.id.progressbarAllNotices)
-        layoutManager= LinearLayoutManager(this)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        val view = inflater.inflate(R.layout.fragment_notices_, container, false)
+        swipeToRefreshAllNotices=view.findViewById(R.id.swipeToRefreshAllNotices)
+        recyclerviewAllNotices=view.findViewById(R.id.recyclerviewAllNotices)
+        progressLayout=view.findViewById(R.id.progresslayoutAllNotices)
+        progressBar=view.findViewById(R.id.progressbarAllNotices)
+        layoutManager= LinearLayoutManager(activity as Context)
         tempArrayList = ArrayList()
         AllNoticesList = ArrayList()
-        searchView = findViewById(R.id.searchviewAllNotices)
-        AllNoticesAdapter = AllNoticesAdapter(this, tempArrayList)
+        searchView = view.findViewById(R.id.searchviewAllNotices)
+        AllNoticesAdapter = AllNoticesAdapter(activity as Context, tempArrayList)
         recyclerviewAllNotices.adapter = AllNoticesAdapter
         recyclerviewAllNotices.layoutManager = layoutManager
 
-        val sharedPref = getSharedPreferences("AttendanceManagement", Context.MODE_PRIVATE)
-        if (sharedPref != null) instituteid = sharedPref.getString("InstitutionId", "Your InsID").toString()
+        val sharedPref = activity?.getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
+        if (sharedPref != null) instituteid = sharedPref.getString("EmpInstituteId", "Your InsID").toString()
 
         refreshNotices()
         getAllNoticesList()
@@ -84,6 +87,7 @@ class NoticesActivity : AppCompatActivity() {
                 return false
             }
         })
+        return view
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -112,4 +116,5 @@ class NoticesActivity : AppCompatActivity() {
             getAllNoticesList()
         }
     }
+
 }

@@ -13,7 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.buntykrgdg.attendancemanagementusersversion.classes.LeaveHistoryAdapter
+import com.buntykrgdg.attendancemanagementusersversion.classes.adapters.LeaveHistoryAdapter
 import com.buntykrgdg.attendancemanagementusersversion.classes.LeaveRequest
 import com.buntykrgdg.attendancemanagementusersversion.R
 import com.google.firebase.firestore.FirebaseFirestore
@@ -54,15 +54,17 @@ class History_Fragment : Fragment() {
         tempArrayList = ArrayList()
         LeaveRequestList = ArrayList()
         searchView = view.findViewById(R.id.searchviewAllLeaveRequests)
-        LeaveHistoryAdapter = LeaveHistoryAdapter(activity as Context, tempArrayList)
-        recyclerviewAllLeaveRequests.adapter = LeaveHistoryAdapter
-        recyclerviewAllLeaveRequests.layoutManager = layoutManager
+
 
         val sharedPref = activity?.getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
         if (sharedPref != null) {
             instituteid = sharedPref.getString("EmpInstituteId", "Your InsID").toString()
             empid = sharedPref.getString("EmpID", "Your EmpID").toString()
         }
+
+        LeaveHistoryAdapter = LeaveHistoryAdapter(activity as Context, instituteid, empid, tempArrayList)
+        recyclerviewAllLeaveRequests.adapter = LeaveHistoryAdapter
+        recyclerviewAllLeaveRequests.layoutManager = layoutManager
 
         refreshLeaves()
         getLeaveRequestList()

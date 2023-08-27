@@ -1,4 +1,4 @@
-package com.buntykrgdg.attendancemanagementusersversion.classes
+package com.buntykrgdg.attendancemanagementusersversion.classes.adapters
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -9,6 +9,7 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.buntykrgdg.attendancemanagementusersversion.R
+import com.buntykrgdg.attendancemanagementusersversion.classes.Notice
 
 class AllNoticesAdapter (val context: Context, val AllNoticesList:ArrayList<Notice>): RecyclerView.Adapter<AllNoticesAdapter.AllNoticesViewHolder>(){
     class AllNoticesViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -32,5 +33,6 @@ class AllNoticesAdapter (val context: Context, val AllNoticesList:ArrayList<Noti
         val notice = AllNoticesList[position]
         holder.txtTimeStamp.text = notice.timestamp
         holder.txtNotice.text = notice.message
+
     }
 }

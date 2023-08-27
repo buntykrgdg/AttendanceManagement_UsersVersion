@@ -4,6 +4,7 @@
     <item
         android:id="@+id/options_menu_notices"
         android:title="Notices"
-        app:showAsAction="never" />
+        android:icon="@drawable/baseline_circle_notifications_24"
+        app:showAsAction="always" />
 
 </menu>
