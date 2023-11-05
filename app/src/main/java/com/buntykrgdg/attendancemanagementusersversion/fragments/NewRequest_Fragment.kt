@@ -766,6 +766,8 @@ class NewRequest_Fragment : Fragment() {
         val year = c.get(android.icu.util.Calendar.YEAR)
         val month = c.get(android.icu.util.Calendar.MONTH)
         val day = c.get(android.icu.util.Calendar.DAY_OF_MONTH)
+
+        // Create a DatePickerDialog with custom style
         val datePickerDialog = DatePickerDialog(
             requireContext(),
             { _: DatePicker?, year: Int, month: Int, dayOfMonth: Int ->
@@ -784,6 +786,7 @@ class NewRequest_Fragment : Fragment() {
         )
         datePickerDialog.show()
     }
+
 
     private fun updatenofoleaves(view: View) {
         val typecheckedid = RGMorethanOneDayLeaveTypeSelection.checkedRadioButtonId

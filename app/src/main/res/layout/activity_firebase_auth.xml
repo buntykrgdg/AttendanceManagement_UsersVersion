@@ -23,7 +23,6 @@
         android:layout_below="@id/imgLogoRegistrationpage"
         android:padding="20dp"
         android:textStyle="bold"
-        android:textColor="@color/black"
         />
 
 
@@ -37,8 +36,6 @@
         android:inputType="number"
         android:layout_centerHorizontal="true"
         android:hint="Enter the OTP here"
-        android:textColorHint="@color/black"
-        android:textColor="@color/black"
         android:layout_below="@id/txtHeading"
         />
 
@@ -51,7 +48,6 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="15dp"
         android:textSize="18sp"
-        android:textColor="@color/black"
         />
 
     <Button
@@ -65,7 +61,6 @@
         android:paddingRight="40dp"
         android:text="Verify OTP"
         android:textSize="15sp"
-        android:backgroundTint="@color/black"
         />
 
     <ProgressBar

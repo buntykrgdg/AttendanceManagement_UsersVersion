@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
     tools:context=".fragments.History_Fragment">
 
     <SearchView
@@ -36,8 +35,7 @@
         android:id="@+id/progresslayoutHistoryFragment"
         android:layout_below="@id/searchviewAllLeaveRequests"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#ffffff">
+        android:layout_height="match_parent">
         <ProgressBar
             android:id="@+id/progressbarHistoryFragment"
             android:layout_width="wrap_content"
