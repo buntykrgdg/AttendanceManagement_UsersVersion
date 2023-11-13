@@ -16,6 +16,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.buntykrgdg.attendancemanagementusersversion.classes.adapters.LeaveHistoryAdapter
 import com.buntykrgdg.attendancemanagementusersversion.classes.LeaveRequest
 import com.buntykrgdg.attendancemanagementusersversion.R
+import com.buntykrgdg.attendancemanagementusersversion.UtilFunctions
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.toObject
@@ -33,7 +34,7 @@ class HistoryFragment : Fragment() {
     private lateinit var swipeToRefreshAllLeaves: SwipeRefreshLayout
     private lateinit var recyclerviewAllLeaveRequests: RecyclerView
     private lateinit var layoutManager: RecyclerView.LayoutManager
-    private var LeaveRequestList=arrayListOf<LeaveRequest>()
+    private var leaveRequestList=arrayListOf<LeaveRequest>()
     private lateinit var LeaveHistoryAdapter: LeaveHistoryAdapter
     private lateinit var searchView: SearchView
     private lateinit var tempArrayList: ArrayList<LeaveRequest>
@@ -52,9 +53,8 @@ class HistoryFragment : Fragment() {
         progressBar=view.findViewById(R.id.progressbarHistoryFragment)
         layoutManager= LinearLayoutManager(activity)
         tempArrayList = ArrayList()
-        LeaveRequestList = ArrayList()
+        leaveRequestList = ArrayList()
         searchView = view.findViewById(R.id.searchviewAllLeaveRequests)
-
 
         val sharedPref = activity?.getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
         if (sharedPref != null) {
@@ -82,7 +82,7 @@ class HistoryFragment : Fragment() {
                 val searchText = newText!!.lowercase(Locale.getDefault())
 
                 if (searchText.isNotEmpty()){
-                    LeaveRequestList.forEach{
+                    leaveRequestList.forEach{
                         if (it.timestamp?.lowercase(Locale.getDefault())?.contains(searchText) == true){
                             tempArrayList.add(it)
                         }
@@ -91,7 +91,7 @@ class HistoryFragment : Fragment() {
                 }
                 else{
                     tempArrayList.clear()
-                    tempArrayList.addAll(LeaveRequestList)
+                    tempArrayList.addAll(leaveRequestList)
                     recyclerviewAllLeaveRequests.adapter?.notifyDataSetChanged()
                 }
                 return false
@@ -99,22 +99,25 @@ class HistoryFragment : Fragment() {
         })
         return view
     }
+
     @SuppressLint("NotifyDataSetChanged")
     private fun getLeaveRequestList() = CoroutineScope(Dispatchers.IO).launch {
-        LeaveRequestList.clear()
+        leaveRequestList.clear()
         tempArrayList.clear()
         val dbref = db.collection("Institutions").document(instituteid)
             .collection("Employees")
             .document(empid).collection("Leaves").orderBy("timestamp", Query.Direction.DESCENDING)
         val querySnapshot = dbref.get().await()
         for(document in querySnapshot.documents){
-            document.toObject<LeaveRequest>()?.let { LeaveRequestList.add(it) }
+            document.toObject<LeaveRequest>()?.let { leaveRequestList.add(it) }
         }
-        tempArrayList.addAll(LeaveRequestList)
+        tempArrayList.addAll(leaveRequestList)
+        UtilFunctions.sortLeaveRequestByTimestamp(tempArrayList)
         withContext(Dispatchers.Main){
             recyclerviewAllLeaveRequests.adapter?.notifyDataSetChanged()
             progressLayout.visibility = View.GONE
             swipeToRefreshAllLeaves.isRefreshing = false
         }
     }
+
 }

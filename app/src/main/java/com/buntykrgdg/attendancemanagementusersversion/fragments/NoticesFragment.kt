@@ -17,6 +17,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.buntykrgdg.attendancemanagementusersversion.R
 import com.buntykrgdg.attendancemanagementusersversion.classes.adapters.AllNoticesAdapter
 import com.buntykrgdg.attendancemanagementusersversion.classes.Notice
+import com.buntykrgdg.attendancemanagementusersversion.UtilFunctions
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.toObject
@@ -106,11 +107,11 @@ class NoticesFragment : Fragment() {
             document.toObject<Notice>()?.let { allNoticesList.add(it) }
         }
         tempArrayList.addAll(allNoticesList)
+        UtilFunctions.sortNoticeByTimestamp(tempArrayList)
         withContext(Dispatchers.Main) {
             recyclerviewAllNotices.adapter?.notifyDataSetChanged()
             progressLayout.visibility = View.GONE
             swipeToRefreshAllNotices.isRefreshing = false
         }
     }
-
 }
