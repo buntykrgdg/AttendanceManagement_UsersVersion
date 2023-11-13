@@ -26,7 +26,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.util.*
 
-class History_Fragment : Fragment() {
+class HistoryFragment : Fragment() {
 
     private lateinit var progressLayout: RelativeLayout
     private lateinit var progressBar: ProgressBar
@@ -66,7 +66,9 @@ class History_Fragment : Fragment() {
         recyclerviewAllLeaveRequests.adapter = LeaveHistoryAdapter
         recyclerviewAllLeaveRequests.layoutManager = layoutManager
 
-        refreshLeaves()
+        swipeToRefreshAllLeaves.setOnRefreshListener {
+            getLeaveRequestList()
+        }
         getLeaveRequestList()
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
@@ -115,11 +117,4 @@ class History_Fragment : Fragment() {
             swipeToRefreshAllLeaves.isRefreshing = false
         }
     }
-
-    private fun refreshLeaves(){
-        swipeToRefreshAllLeaves.setOnRefreshListener {
-            getLeaveRequestList()
-        }
-    }
-
 }

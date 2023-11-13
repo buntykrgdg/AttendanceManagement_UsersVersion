@@ -5,7 +5,6 @@ import android.app.DatePickerDialog
 import android.content.Context
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,14 +12,13 @@ import android.widget.*
 import androidx.fragment.app.Fragment
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
+import com.buntykrgdg.attendancemanagementusersversion.R
 import com.buntykrgdg.attendancemanagementusersversion.classes.Employee
 import com.buntykrgdg.attendancemanagementusersversion.classes.LeaveRequest
 import com.buntykrgdg.attendancemanagementusersversion.classes.Leaves
-import com.buntykrgdg.attendancemanagementusersversion.R
 import com.google.android.material.card.MaterialCardView
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
@@ -32,7 +30,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-class NewRequest_Fragment : Fragment() {
+class NewRequestFragment : Fragment() {
     private lateinit var txtDate: TextView
     private lateinit var txtDay: TextView
     private lateinit var txtTime: TextView
@@ -211,6 +209,11 @@ class NewRequest_Fragment : Fragment() {
         }
 
         getRemainingLeaves()
+
+        RBHalfDay.isChecked = true
+        RLHalfDay.visibility = View.VISIBLE
+        RLOneDay.visibility = View.GONE
+        RLMorethan1.visibility = View.GONE
 
         RDLeaveRange.setOnCheckedChangeListener { _, checkedId ->
             when (checkedId) {

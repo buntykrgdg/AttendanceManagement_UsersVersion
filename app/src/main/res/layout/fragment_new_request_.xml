@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".fragments.NewRequest_Fragment">
+    tools:context=".fragments.NewRequestFragment">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="15dp"
         android:layout_marginTop="10dp"
-        android:text="01/01/2023"
+        android:text="01/01/2001"
         android:textSize="25sp"
         android:textStyle="bold" />
 
@@ -91,7 +91,7 @@
                     android:layout_marginTop="5dp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="14"
+                    android:text="0.0"
                     android:textSize="17sp"
                     android:gravity="center"/>
             </LinearLayout>
@@ -114,7 +114,7 @@
                     android:layout_marginTop="5dp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="14"
+                    android:text="0.0"
                     android:textSize="17sp"
                     android:gravity="center"/>
             </LinearLayout>
@@ -137,7 +137,7 @@
                     android:layout_marginTop="5dp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="14"
+                    android:text="0.0"
                     android:textSize="17sp"
                     android:gravity="center"/>
             </LinearLayout>

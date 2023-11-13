@@ -26,18 +26,18 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.util.Locale
-class Notices_Fragment : Fragment() {
+class NoticesFragment : Fragment() {
     private lateinit var progressLayout: RelativeLayout
     private lateinit var progressBar: ProgressBar
     private lateinit var swipeToRefreshAllNotices: SwipeRefreshLayout
     private lateinit var recyclerviewAllNotices: RecyclerView
     private lateinit var layoutManager: RecyclerView.LayoutManager
-    private var AllNoticesList = arrayListOf<Notice>()
-    private lateinit var AllNoticesAdapter: AllNoticesAdapter
+    private var allNoticesList = arrayListOf<Notice>()
+    private lateinit var allNoticesAdapter: AllNoticesAdapter
     private lateinit var searchView: SearchView
     private lateinit var tempArrayList: ArrayList<Notice>
     private val db = FirebaseFirestore.getInstance()
-    private lateinit var instituteid: String
+    private lateinit var instituteId: String
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -49,16 +49,18 @@ class Notices_Fragment : Fragment() {
         progressBar=view.findViewById(R.id.progressbarAllNotices)
         layoutManager= LinearLayoutManager(activity as Context)
         tempArrayList = ArrayList()
-        AllNoticesList = ArrayList()
+        allNoticesList = ArrayList()
         searchView = view.findViewById(R.id.searchviewAllNotices)
-        AllNoticesAdapter = AllNoticesAdapter(activity as Context, tempArrayList)
-        recyclerviewAllNotices.adapter = AllNoticesAdapter
+        allNoticesAdapter = AllNoticesAdapter(activity as Context, tempArrayList)
+        recyclerviewAllNotices.adapter = allNoticesAdapter
         recyclerviewAllNotices.layoutManager = layoutManager
 
         val sharedPref = activity?.getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
-        if (sharedPref != null) instituteid = sharedPref.getString("EmpInstituteId", "Your InsID").toString()
+        if (sharedPref != null) instituteId = sharedPref.getString("EmpInstituteId", "Your InsID").toString()
 
-        refreshNotices()
+        swipeToRefreshAllNotices.setOnRefreshListener {
+            getAllNoticesList()
+        }
         getAllNoticesList()
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
@@ -72,7 +74,7 @@ class Notices_Fragment : Fragment() {
                 val searchText = newText!!.lowercase(Locale.getDefault())
 
                 if (searchText.isNotEmpty()){
-                    AllNoticesList.forEach{
+                    allNoticesList.forEach{
                         if (it.message?.lowercase(Locale.getDefault())?.contains(searchText) == true){
                             tempArrayList.add(it)
                         }
@@ -81,7 +83,7 @@ class Notices_Fragment : Fragment() {
                 }
                 else{
                     tempArrayList.clear()
-                    tempArrayList.addAll(AllNoticesList)
+                    tempArrayList.addAll(allNoticesList)
                     recyclerviewAllNotices.adapter?.notifyDataSetChanged()
                 }
                 return false
@@ -92,28 +94,22 @@ class Notices_Fragment : Fragment() {
 
     @SuppressLint("NotifyDataSetChanged")
     private fun getAllNoticesList() = CoroutineScope(Dispatchers.IO).launch {
-        AllNoticesList.clear()
+        allNoticesList.clear()
         tempArrayList.clear()
-        val dbref = db.collection("Institutions")
-            .document(instituteid)
+        val dbRef = db.collection("Institutions")
+            .document(instituteId)
             .collection("Notices")
             .orderBy("timestamp", Query.Direction.DESCENDING)
-        val querySnapshot = dbref.get().await()
+        val querySnapshot = dbRef.get().await()
         for (document in querySnapshot.documents) {
             Log.d("db", document.toString())
-            document.toObject<Notice>()?.let { AllNoticesList.add(it) }
+            document.toObject<Notice>()?.let { allNoticesList.add(it) }
         }
-        tempArrayList.addAll(AllNoticesList)
+        tempArrayList.addAll(allNoticesList)
         withContext(Dispatchers.Main) {
             recyclerviewAllNotices.adapter?.notifyDataSetChanged()
             progressLayout.visibility = View.GONE
             swipeToRefreshAllNotices.isRefreshing = false
-        }
-    }
-
-    private fun refreshNotices() {
-        swipeToRefreshAllNotices.setOnRefreshListener {
-            getAllNoticesList()
         }
     }
 

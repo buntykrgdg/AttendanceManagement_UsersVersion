@@ -12,24 +12,24 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.buntykrgdg.attendancemanagementusersversion.R
-import com.buntykrgdg.attendancemanagementusersversion.activities.Login_Activity
+import com.buntykrgdg.attendancemanagementusersversion.activities.LoginActivity
 import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
 
-class Profile_Fragment : Fragment() {
+class ProfileFragment : Fragment() {
 
     private lateinit var txtUpperName: TextView
     private lateinit var txtUpperDepartment: TextView
-    private lateinit var EmpFirstName: TextInputEditText
-    private lateinit var EmpMiddleName: TextInputEditText
-    private lateinit var EmpLastName: TextInputEditText
-    private lateinit var EmpInstitute: TextInputEditText
-    private lateinit var EmpDesignation: TextInputEditText
-    private lateinit var EmpDepartment: TextInputEditText
-    private lateinit var EmpDOB: TextInputEditText
-    private lateinit var EmpDOA: TextInputEditText
-    private lateinit var EmpPhoneNo: TextInputEditText
-    private lateinit var EmpEmailId: TextInputEditText
+    private lateinit var empFirstName: TextInputEditText
+    private lateinit var empMiddleName: TextInputEditText
+    private lateinit var empLastName: TextInputEditText
+    private lateinit var empInstitute: TextInputEditText
+    private lateinit var empDesignation: TextInputEditText
+    private lateinit var empDepartment: TextInputEditText
+    private lateinit var empDOB: TextInputEditText
+    private lateinit var empDOA: TextInputEditText
+    private lateinit var empPhoneNo: TextInputEditText
+    private lateinit var empEmailId: TextInputEditText
     private lateinit var btnLogout: Button
 
     private lateinit var instituteId: String
@@ -56,16 +56,16 @@ class Profile_Fragment : Fragment() {
 
         txtUpperName = view.findViewById(R.id.txtUpperName)
         txtUpperDepartment = view.findViewById(R.id.txtUpperDepartment)
-        EmpFirstName = view.findViewById(R.id.EmpFirstName)
-        EmpMiddleName = view.findViewById(R.id.EmpMiddleName)
-        EmpLastName = view.findViewById(R.id.EmpLastName)
-        EmpInstitute = view.findViewById(R.id.EmpInstitute)
-        EmpDesignation = view.findViewById(R.id.EmpDesignation)
-        EmpDepartment = view.findViewById(R.id.EmpDepartment)
-        EmpDOB = view.findViewById(R.id.EmpDOB)
-        EmpDOA = view.findViewById(R.id.EmpDOA)
-        EmpPhoneNo = view.findViewById(R.id.EmpPhoneNo)
-        EmpEmailId = view.findViewById(R.id.EmpEmailId)
+        empFirstName = view.findViewById(R.id.EmpFirstName)
+        empMiddleName = view.findViewById(R.id.EmpMiddleName)
+        empLastName = view.findViewById(R.id.EmpLastName)
+        empInstitute = view.findViewById(R.id.EmpInstitute)
+        empDesignation = view.findViewById(R.id.EmpDesignation)
+        empDepartment = view.findViewById(R.id.EmpDepartment)
+        empDOB = view.findViewById(R.id.EmpDOB)
+        empDOA = view.findViewById(R.id.EmpDOA)
+        empPhoneNo = view.findViewById(R.id.EmpPhoneNo)
+        empEmailId = view.findViewById(R.id.EmpEmailId)
         btnLogout = view.findViewById(R.id.btnLogout)
 
         val sharedPref = activity?.getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
@@ -83,27 +83,26 @@ class Profile_Fragment : Fragment() {
             empphno = sharedPref.getString("PhoneNumber", "PhoneNumber").toString()
             empemail = sharedPref.getString("EmailId", "EmailId").toString()
         }
+        txtUpperName.text = "$empfname $emplname"
+        txtUpperDepartment.text = empdepartment
+        empFirstName.setText(empfname)
+        empMiddleName.setText(empmname)
+        empLastName.setText(emplname)
+        empInstitute.setText("$instituteName($instituteId)")
+        empDesignation.setText(empdesignation)
+        empDepartment.setText(empdepartment)
+        empDOB.setText(empdob)
+        empDOA.setText(empdoa)
+        empPhoneNo.setText(empphno)
+        empEmailId.setText(empemail)
+
         btnLogout.setOnClickListener {
             logout()
         }
-
-        txtUpperName.text = "$empfname $emplname"
-        txtUpperDepartment.text = empdepartment
-        EmpFirstName.setText(empfname)
-        EmpMiddleName.setText(empmname)
-        EmpLastName.setText(emplname)
-        EmpInstitute.setText("$instituteName($instituteId)")
-        EmpDesignation.setText(empdesignation)
-        EmpDepartment.setText(empdepartment)
-        EmpDOB.setText(empdob)
-        EmpDOA.setText(empdoa)
-        EmpPhoneNo.setText(empphno)
-        EmpEmailId.setText(empemail)
-
         return view
     }
 
-    private fun logout() {// Logout from the account, clear shared preferences and start Login/Register avtivity
+    private fun logout() {// Logout from the account, clear shared preferences and start Login activity
         val dialogBuilder = AlertDialog.Builder(activity as Context)
         dialogBuilder.setTitle("Logout")
         dialogBuilder.setMessage("Do you want to logout of the app?")
@@ -113,7 +112,7 @@ class Profile_Fragment : Fragment() {
             val editor = sharedPref?.edit()
             editor?.clear()
             editor?.apply()
-            val intent = Intent(activity as Context, Login_Activity::class.java)
+            val intent = Intent(activity as Context, LoginActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
             startActivity(intent)
         }

@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activities.Firebase_auth_Activity">
+    tools:context=".activities.FirebaseAuthActivity">
 
     <ImageView
         android:id="@+id/imgLogoRegistrationpage"

@@ -6,13 +6,13 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/logo"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.AttendanceManagementUsersVersion"
         tools:targetApi="31">
         <activity
-            android:name=".activities.Login_Activity"
+            android:name=".activities.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -21,7 +21,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activities.Firebase_auth_Activity"
+            android:name=".activities.FirebaseAuthActivity"
             android:exported="false" />
         <activity
             android:name=".activities.MainActivity"

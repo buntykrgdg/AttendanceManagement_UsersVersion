@@ -24,10 +24,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
-class Login_Activity : AppCompatActivity() {
-    private lateinit var edtxtGetphonenumber: EditText
+class LoginActivity : AppCompatActivity() {
+    private lateinit var edTxtGetPhoneNumber: EditText
     private lateinit var btnSendOtpButton: Button
     private lateinit var countyrycodepicker: CountryCodePicker
     private lateinit var countrycode: String
@@ -35,22 +36,20 @@ class Login_Activity : AppCompatActivity() {
     private lateinit var firebaseAuth: FirebaseAuth
     private var database = FirebaseFirestore.getInstance()
     private lateinit var progressbarofmain: ProgressBar
-    private lateinit var Callbacks: PhoneAuthProvider.OnVerificationStateChangedCallbacks
+    private lateinit var callBacks: PhoneAuthProvider.OnVerificationStateChangedCallbacks
     private lateinit var codesent: String
-    private lateinit var CompanyID: TextInputEditText
+    private lateinit var companyID: TextInputEditText
     private lateinit var employeedetails: Employee
     private lateinit var companyid: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
-
         countyrycodepicker = findViewById(R.id.countyrycodepicker)
         btnSendOtpButton = findViewById(R.id.btnSendOtpButton)
-        edtxtGetphonenumber = findViewById(R.id.edtxtGetphonenumber)
+        edTxtGetPhoneNumber = findViewById(R.id.edtxtGetphonenumber)
         progressbarofmain = findViewById(R.id.progressbarofmain)
-        CompanyID = findViewById(R.id.CompanyID)
-
+        companyID = findViewById(R.id.CompanyID)
         firebaseAuth = FirebaseAuth.getInstance()
         countrycode = countyrycodepicker.selectedCountryCodeWithPlus
 
@@ -59,7 +58,7 @@ class Login_Activity : AppCompatActivity() {
         }
 
         btnSendOtpButton.setOnClickListener {
-            val number: String = edtxtGetphonenumber.text.toString()
+            val number: String = edTxtGetPhoneNumber.text.toString()
             if (number.isEmpty()) {
                 Toast.makeText(applicationContext, "Please enter your number", Toast.LENGTH_SHORT)
                     .show()
@@ -71,15 +70,14 @@ class Login_Activity : AppCompatActivity() {
                 ).show()
             } else {
                 progressbarofmain.visibility = View.VISIBLE
-                companyid = CompanyID.text.toString()
-                checkifregistered(companyid,number)
+                companyid = companyID.text.toString()
+                checkIfRegistered(companyid,number)
             }
         }
 
-        Callbacks = object: PhoneAuthProvider.OnVerificationStateChangedCallbacks(){
+        callBacks = object: PhoneAuthProvider.OnVerificationStateChangedCallbacks(){
             override fun onVerificationCompleted(p0: PhoneAuthCredential) {
-                TODO("Not yet implemented")
-                //How to automatically fetch code
+                Toast.makeText(applicationContext, "Verification Completed", Toast.LENGTH_SHORT).show()
             }
 
             override fun onVerificationFailed(p0: FirebaseException) {
@@ -91,7 +89,7 @@ class Login_Activity : AppCompatActivity() {
                 Toast.makeText(applicationContext, "Code Sent", Toast.LENGTH_SHORT).show()
                 progressbarofmain.visibility = View.INVISIBLE
                 codesent = p0
-                val intent = Intent(this@Login_Activity, Firebase_auth_Activity::class.java)
+                val intent = Intent(this@LoginActivity, FirebaseAuthActivity::class.java)
                 intent.putExtra("otp", codesent)
                 intent.putExtra("instituteid", companyid)
                 intent.putExtra("employeedetails", employeedetails)
@@ -100,37 +98,43 @@ class Login_Activity : AppCompatActivity() {
         }
     }
 
-    private fun checkifregistered(instituteid: String, pnumber: String) = CoroutineScope(Dispatchers.IO).launch{
+    private fun checkIfRegistered(instituteId: String, pNumber: String) = CoroutineScope(Dispatchers.IO).launch{
         var status: String? = null
-        val databaseref = database.collection("Institutions").document(instituteid).collection("Employees")
-        val querySnapshot = databaseref.whereEqualTo("empPhoneNo", pnumber).get().await()
+        val databaseRef = database.collection("Institutions").document(instituteId).collection("Employees")
+        val querySnapshot = databaseRef.whereEqualTo("empPhoneNo", pNumber).get().await()
             for (document in querySnapshot) {
                 val employee = document.toObject<Employee>()
                 Log.d("new", employee.toString())
-                if (employee.EmpPhoneNo == pnumber){
+                if (employee.EmpPhoneNo == pNumber){
                     employeedetails = employee
                     status = "1"
                 }
             }
             if (status == null) {
-                Toast.makeText(applicationContext, "Please enter registered number", Toast.LENGTH_SHORT).show()
+                withContext(Dispatchers.Main){
+                    Toast.makeText(applicationContext, "Please enter registered number", Toast.LENGTH_SHORT).show()
+                }
             } else {
-                progressbarofmain.visibility = View.VISIBLE
-                phonenumber = countrycode+pnumber
+                withContext(Dispatchers.Main){
+                    progressbarofmain.visibility = View.VISIBLE
+                }
+                phonenumber = countrycode+pNumber
                 val options: PhoneAuthOptions = PhoneAuthOptions.newBuilder(firebaseAuth).setPhoneNumber(phonenumber)
                     .setTimeout(60L, TimeUnit.SECONDS)
-                    .setActivity(this@Login_Activity)
-                    .setCallbacks(Callbacks)
+                    .setActivity(this@LoginActivity)
+                    .setCallbacks(callBacks)
                     .build()
                 PhoneAuthProvider.verifyPhoneNumber(options)
-                progressbarofmain.visibility = View.INVISIBLE
+                withContext(Dispatchers.Main){
+                    progressbarofmain.visibility = View.INVISIBLE
+                }
             }
     }
 
     override fun onStart() {
         super.onStart()
         if(FirebaseAuth.getInstance().currentUser != null){
-            val intent = Intent(this@Login_Activity, MainActivity::class.java)
+            val intent = Intent(this@LoginActivity, MainActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
         }

@@ -11,11 +11,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.buntykrgdg.attendancemanagementusersversion.fragments.Notices_Fragment
+import com.buntykrgdg.attendancemanagementusersversion.fragments.NoticesFragment
 import com.buntykrgdg.attendancemanagementusersversion.R
-import com.buntykrgdg.attendancemanagementusersversion.fragments.History_Fragment
-import com.buntykrgdg.attendancemanagementusersversion.fragments.NewRequest_Fragment
-import com.buntykrgdg.attendancemanagementusersversion.fragments.Profile_Fragment
+import com.buntykrgdg.attendancemanagementusersversion.fragments.HistoryFragment
+import com.buntykrgdg.attendancemanagementusersversion.fragments.NewRequestFragment
+import com.buntykrgdg.attendancemanagementusersversion.fragments.ProfileFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -29,25 +29,21 @@ class MainActivity : AppCompatActivity() {
     private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
     private var isReadPermissionGranted = false
     private var isLocationPermissionGranted = false
-    private val notificationCount: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        getfcmtoken() //Remove getfcmtoken()
+        getfcmtoken()
+        FirebaseMessaging.getInstance().subscribeToTopic("all")
 
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
-        val firstFragment = NewRequest_Fragment()
-        val secondFragment = History_Fragment()
-        val thirdFragment = Profile_Fragment()
-        val fourthFragment = Notices_Fragment()
+        val firstFragment = NewRequestFragment()
+        val secondFragment = HistoryFragment()
+        val thirdFragment = ProfileFragment()
+        val fourthFragment = NoticesFragment()
 
         setCurrentFragment(firstFragment)
-
-        /*bottomNavigationView.getOrCreateBadge(R.id.notices_menu).apply {
-
-        }*/
 
         bottomNavigationView.setOnNavigationItemSelectedListener {
             when(it.itemId){
@@ -59,7 +55,6 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-        FirebaseMessaging.getInstance().subscribeToTopic("all")
 
         permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()){ permissions ->
 
