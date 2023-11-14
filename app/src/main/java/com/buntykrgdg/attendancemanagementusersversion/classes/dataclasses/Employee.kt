@@ -1,4 +1,4 @@
-package com.buntykrgdg.attendancemanagementusersversion.classes
+package com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses
 
 data class Employee(var EmpId: String? = null,
                     var EmpFirstName: String? = null,

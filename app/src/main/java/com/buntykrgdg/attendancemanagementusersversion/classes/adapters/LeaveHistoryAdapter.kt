@@ -12,7 +12,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.buntykrgdg.attendancemanagementusersversion.R
-import com.buntykrgdg.attendancemanagementusersversion.classes.LeaveRequest
+import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.LeaveRequest
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

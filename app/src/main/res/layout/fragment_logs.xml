@@ -3,35 +3,27 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.HistoryFragment">
+    tools:context=".fragments.LogsFragment">
 
     <SearchView
-        android:id="@+id/searchviewAllLeaveRequests"
+        android:id="@+id/searchviewAllLogs"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="10dp"
-        android:queryHint="Enter date of request"
+        android:queryHint="Enter date"
         android:iconifiedByDefault="false"
         android:queryBackground="@android:color/transparent"
         />
 
-    <Spinner
-        android:id="@+id/LeaveRequestsStatusSpinner"
-        android:layout_below="@id/searchviewAllLeaveRequests"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="25dp"
-        />
-
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipeToRefreshAllLeaves"
+        android:id="@+id/swipeToRefreshAllLogs"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/LeaveRequestsStatusSpinner">
+        android:layout_below="@id/searchviewAllLogs">
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerviewAllLeaveRequests"
+            android:id="@+id/recyclerviewAllLogs"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="10dp"
@@ -40,12 +32,12 @@
 
 
     <RelativeLayout
-        android:id="@+id/progresslayoutHistoryFragment"
-        android:layout_below="@id/searchviewAllLeaveRequests"
+        android:id="@+id/progresslayoutAllLogs"
+        android:layout_below="@id/searchviewAllLogs"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <ProgressBar
-            android:id="@+id/progressbarHistoryFragment"
+            android:id="@+id/progressbarAllLogs"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"/>

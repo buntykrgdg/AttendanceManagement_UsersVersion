@@ -1,4 +1,4 @@
-package com.buntykrgdg.attendancemanagementusersversion.classes
+package com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses
 
 data class Notice(
     val timestamp: String? = null,

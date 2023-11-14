@@ -12,13 +12,15 @@ import android.widget.*
 import androidx.fragment.app.Fragment
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
+import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.CheckInOutLog
 import com.buntykrgdg.attendancemanagementusersversion.R
-import com.buntykrgdg.attendancemanagementusersversion.classes.Employee
-import com.buntykrgdg.attendancemanagementusersversion.classes.LeaveRequest
+import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.Employee
+import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.LeaveRequest
 import com.buntykrgdg.attendancemanagementusersversion.classes.Leaves
 import com.google.android.material.card.MaterialCardView
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
@@ -119,6 +121,13 @@ class NewRequestFragment : Fragment() {
     private var MorethanOnedayFromselected: String = "null"
     private var MorethanOnedayToselected: String = "null"
 
+    private lateinit var checkOutReasonSpinner: Spinner
+    private lateinit var checkOutReasonAdapter: ArrayAdapter<String>
+    private lateinit var btnCheckIn: Button
+    private lateinit var btnCheckOut: Button
+    private lateinit var txtCheckInOutStatus: TextView
+    private lateinit var txtMyLogs: TextView
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -190,6 +199,42 @@ class NewRequestFragment : Fragment() {
         RBHalfDay = view.findViewById(R.id.RBHalfDay)
         RBOneDay = view.findViewById(R.id.RBOneDay)
         RBMorethanOne = view.findViewById(R.id.RBMorethanOne)
+
+        checkOutReasonSpinner = view.findViewById(R.id.CheckOutReasonSpinner)
+        btnCheckIn = view.findViewById(R.id.btnCheckIn)
+        btnCheckOut = view.findViewById(R.id.btnCheckOut)
+        txtCheckInOutStatus = view.findViewById(R.id.txtCheckInOutStatus)
+        txtMyLogs = view.findViewById(R.id.txtMyLogs)
+
+        val reasons = listOf("Bank", "Home", "Emergency", "Others")
+        checkOutReasonAdapter = ArrayAdapter(activity as Context, android.R.layout.simple_spinner_dropdown_item, reasons)
+        checkOutReasonSpinner.adapter = checkOutReasonAdapter
+
+        //getCurrentStatus()
+        if(txtSession.text.toString() != "No session running" &&
+            txtSession.text.toString() != "Holiday" &&
+            txtSession.text.toString() != "Break"){
+            getCurrentStatus()
+        }else{
+            checkOutReasonSpinner.isEnabled = false
+            btnCheckIn.isEnabled = false
+            btnCheckOut.isEnabled = false
+            txtCheckInOutStatus.text = txtSession.text.toString()
+        }
+
+        btnCheckIn.setOnClickListener {
+            updateStatus("Checked In")
+            updateLog("---","Checked In")
+        }
+        btnCheckOut.setOnClickListener {
+            updateStatus("Checked Out")
+            updateLog(checkOutReasonSpinner.selectedItem.toString(),"Checked Out")
+        }
+
+        val firstFragment = LogsFragment()
+        txtMyLogs.setOnClickListener {
+            setCurrentFragment(firstFragment)
+        }
 
         val sharedPref =
             activity?.getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
@@ -687,6 +732,41 @@ class NewRequestFragment : Fragment() {
             }
         }
 
+    private fun updateLog(reason:String, status: String) =
+        CoroutineScope(Dispatchers.IO).launch {
+            withContext(Dispatchers.Main) {
+                progressbarofNewRequest.visibility = View.VISIBLE
+            }
+            try {
+                val folderName = getDate()
+                val currentTimeMillis = System.currentTimeMillis()
+                val sdf = SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss a", Locale.getDefault())
+                val formattedDateTime = sdf.format(Date(currentTimeMillis))
+                val map = mutableMapOf<String, Any>()
+                map["Date"] = folderName
+                val databaseRef1 = Firebase.firestore.collection("Institutions/${instituteid}/Employees/${empid}/Logs").document(folderName)
+                databaseRef1.set(map, SetOptions.merge()).await()
+                val databaseRef2 = Firebase.firestore.collection("Institutions/${instituteid}/Employees/${empid}/Logs/${folderName}/CheckInCheckOut")
+                    .document(formattedDateTime)
+                val newLog = CheckInOutLog(
+                    formattedDateTime.toString(),
+                    reason,
+                    status
+                )
+                databaseRef2.set(newLog).await()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(activity as Context, "Log updated", Toast.LENGTH_LONG).show()
+                    sendEmployerNotification(activity as Context)
+                    progressbarofNewRequest.visibility = View.GONE
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(activity as Context, e.message, Toast.LENGTH_LONG).show()
+                    progressbarofNewRequest.visibility = View.GONE
+                }
+            }
+        }
+
     private fun getRemainingLeaves() = CoroutineScope(Dispatchers.IO).launch {
         val databaseref =
             database.collection("Institutions").document(instituteid).collection("Employees")
@@ -701,6 +781,40 @@ class NewRequestFragment : Fragment() {
         withContext(Dispatchers.Main) {
             updateremainingleaves()
         }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun getCurrentStatus() = CoroutineScope(Dispatchers.IO).launch {
+        val doc = database.collection("Institutions")
+            .document(instituteid).collection("Employees")
+            .document(empid).get().await()
+        val status = doc.get("status").toString()
+        withContext(Dispatchers.Main) {
+            if(status == "Checked Out"){
+                btnCheckOut.isEnabled = false
+                checkOutReasonSpinner.isEnabled = false
+                btnCheckIn.isEnabled = true
+                //txtCheckInOutStatus.setTextColor(android.graphics.Color.parseColor("#F44336"))
+            }else{
+                btnCheckOut.isEnabled = true
+                checkOutReasonSpinner.isEnabled = true
+                btnCheckIn.isEnabled = false
+                //txtCheckInOutStatus.setTextColor(android.graphics.Color.parseColor("#F44336"))
+            }
+            txtCheckInOutStatus.text = "You have $status"
+        }
+    }
+
+    private fun updateStatus(status: String) = CoroutineScope(Dispatchers.IO).launch{
+        val map = mutableMapOf<String, Any>()
+        map["status"] = status
+        val databaseref = database.collection("Institutions").document(instituteid).collection("Employees")
+            .document(empid)
+        databaseref.set(map, SetOptions.merge()).await()
+        withContext(Dispatchers.Main){
+            Toast.makeText(activity as Context, status, Toast.LENGTH_LONG).show()
+        }
+        getCurrentStatus()
     }
 
     private fun updateremainingleaves() {
@@ -857,5 +971,12 @@ class NewRequestFragment : Fragment() {
                 }
             }
             Volley.newRequestQueue(context).add(request)
+        }
+
+    private fun setCurrentFragment(fragment: Fragment)=
+        activity?.supportFragmentManager?.beginTransaction()?.apply {
+            replace(R.id.flFragment,fragment)
+            addToBackStack(null)
+            commit()
         }
 }

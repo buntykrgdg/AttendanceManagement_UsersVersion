@@ -9,7 +9,7 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.buntykrgdg.attendancemanagementusersversion.R
-import com.buntykrgdg.attendancemanagementusersversion.classes.Notice
+import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.Notice
 
 class AllNoticesAdapter (val context: Context, val AllNoticesList:ArrayList<Notice>): RecyclerView.Adapter<AllNoticesAdapter.AllNoticesViewHolder>(){
     class AllNoticesViewHolder(view: View) : RecyclerView.ViewHolder(view) {

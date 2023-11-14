@@ -16,8 +16,8 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.buntykrgdg.attendancemanagementusersversion.R
 import com.buntykrgdg.attendancemanagementusersversion.classes.adapters.AllNoticesAdapter
-import com.buntykrgdg.attendancemanagementusersversion.classes.Notice
-import com.buntykrgdg.attendancemanagementusersversion.UtilFunctions
+import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.Notice
+import com.buntykrgdg.attendancemanagementusersversion.objects.UtilFunctions
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.toObject
