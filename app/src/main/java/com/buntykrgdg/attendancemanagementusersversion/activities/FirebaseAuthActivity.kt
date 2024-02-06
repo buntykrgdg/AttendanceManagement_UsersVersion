@@ -3,19 +3,24 @@ package com.buntykrgdg.attendancemanagementusersversion.activities
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.*
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ProgressBar
+import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.RequiresApi
-import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.Employee
+import androidx.appcompat.app.AppCompatActivity
 import com.buntykrgdg.attendancemanagementusersversion.R
+import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.Employee
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -87,10 +92,24 @@ class FirebaseAuthActivity : AppCompatActivity() {
     }
 
     private fun getInstituteName() = CoroutineScope(Dispatchers.IO).launch {
+        val job = updateUid()
+        job.join()
         val databaseRef = database.collection("Institutions").document(instituteId)
         val querySnapshot = databaseRef.get().await()
         instituteName = querySnapshot.get("name").toString()
         Log.d("name", instituteName)
+    }
+
+    private fun updateUid() = CoroutineScope(Dispatchers.IO).launch {
+        val databaseRef =
+            employeeDetails.EmpId?.let {
+                database.collection("Institutions").document(instituteId).collection("Employees").document(
+                    it
+                )
+            }
+        val map = mutableMapOf<String, Any>()
+        map["uid"] = firebaseAuth.uid.toString()
+        databaseRef?.set(map, SetOptions.merge())?.await()
     }
 
     private fun saveToSharedPreferences(employee: Employee) = CoroutineScope(
@@ -109,6 +128,7 @@ class FirebaseAuthActivity : AppCompatActivity() {
             putString("DateOfAppointment", employee.EmpDOA)
             putString("PhoneNumber", employee.EmpPhoneNo)
             putString("EmailId", employee.EmpEmailId)
+            putString("status", "Checked Out")
             employee.EmpCL?.let { putString("CL", it.toString()) }
             employee.EmpHPL?.let { putString("HPL", it.toString()) }
             employee.EmpEL?.let { putString("EL", it.toString()) }

@@ -58,20 +58,25 @@ class LoginActivity : AppCompatActivity() {
         }
 
         btnSendOtpButton.setOnClickListener {
-            val number: String = edTxtGetPhoneNumber.text.toString()
-            if (number.isEmpty()) {
-                Toast.makeText(applicationContext, "Please enter your number", Toast.LENGTH_SHORT)
-                    .show()
-            } else if (number.length < 10) {
-                Toast.makeText(
-                    applicationContext,
-                    "Please enter correct number",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else {
-                progressbarofmain.visibility = View.VISIBLE
-                companyid = companyID.text.toString()
-                checkIfRegistered(companyid,number)
+            companyid = companyID.text.toString()
+            if(companyid == ""){
+                Toast.makeText(applicationContext, "Please enter Company ID", Toast.LENGTH_SHORT).show()
+            }
+            else{
+                val number: String = edTxtGetPhoneNumber.text.toString()
+                if (number.isEmpty()) {
+                    Toast.makeText(applicationContext, "Please enter your number", Toast.LENGTH_SHORT)
+                        .show()
+                } else if (number.length < 10) {
+                    Toast.makeText(
+                        applicationContext,
+                        "Please enter correct number",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    progressbarofmain.visibility = View.VISIBLE
+                    checkIfRegistered(companyid,number)
+                }
             }
         }
 
@@ -102,33 +107,44 @@ class LoginActivity : AppCompatActivity() {
         var status: String? = null
         val databaseRef = database.collection("Institutions").document(instituteId).collection("Employees")
         val querySnapshot = databaseRef.whereEqualTo("empPhoneNo", pNumber).get().await()
+        if (querySnapshot.isEmpty){
+            withContext(Dispatchers.Main){
+                Toast.makeText(applicationContext, "Please check your Company/Institution ID", Toast.LENGTH_SHORT).show()
+                progressbarofmain.visibility = View.INVISIBLE
+            }
+        }
+        else {
             for (document in querySnapshot) {
                 val employee = document.toObject<Employee>()
                 Log.d("new", employee.toString())
-                if (employee.EmpPhoneNo == pNumber){
+                if (employee.EmpPhoneNo == pNumber) {
                     employeedetails = employee
                     status = "1"
                 }
             }
             if (status == null) {
-                withContext(Dispatchers.Main){
-                    Toast.makeText(applicationContext, "Please enter registered number", Toast.LENGTH_SHORT).show()
-                }
-            } else {
-                withContext(Dispatchers.Main){
-                    progressbarofmain.visibility = View.VISIBLE
-                }
-                phonenumber = countrycode+pNumber
-                val options: PhoneAuthOptions = PhoneAuthOptions.newBuilder(firebaseAuth).setPhoneNumber(phonenumber)
-                    .setTimeout(60L, TimeUnit.SECONDS)
-                    .setActivity(this@LoginActivity)
-                    .setCallbacks(callBacks)
-                    .build()
-                PhoneAuthProvider.verifyPhoneNumber(options)
-                withContext(Dispatchers.Main){
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        applicationContext,
+                        "Please enter registered number",
+                        Toast.LENGTH_SHORT
+                    ).show()
                     progressbarofmain.visibility = View.INVISIBLE
                 }
+            } else {
+                withContext(Dispatchers.Main) {
+                    progressbarofmain.visibility = View.VISIBLE
+                }
+                phonenumber = countrycode + pNumber
+                val options: PhoneAuthOptions =
+                    PhoneAuthOptions.newBuilder(firebaseAuth).setPhoneNumber(phonenumber)
+                        .setTimeout(60L, TimeUnit.SECONDS)
+                        .setActivity(this@LoginActivity)
+                        .setCallbacks(callBacks)
+                        .build()
+                PhoneAuthProvider.verifyPhoneNumber(options)
             }
+        }
     }
 
     override fun onStart() {

@@ -11,7 +11,8 @@
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="90dp"
+        android:src="@drawable/logowithoutff"
         />
 
     <TextView
@@ -79,6 +80,7 @@
         android:paddingLeft="40dp"
         android:paddingRight="40dp"
         android:text="Send OTP"
+        android:textStyle="bold"
         android:textSize="15sp"
         />
 

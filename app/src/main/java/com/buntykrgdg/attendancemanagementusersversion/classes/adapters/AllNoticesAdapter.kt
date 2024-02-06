@@ -20,7 +20,7 @@ class AllNoticesAdapter (val context: Context, val AllNoticesList:ArrayList<Noti
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AllNoticesViewHolder {
-        val view= LayoutInflater.from(parent.context).inflate(R.layout.notices_single_row,parent,false)
+        val view= LayoutInflater.from(parent.context).inflate(R.layout.recycler_notices_single_row,parent,false)
         return AllNoticesViewHolder(view)
     }
 

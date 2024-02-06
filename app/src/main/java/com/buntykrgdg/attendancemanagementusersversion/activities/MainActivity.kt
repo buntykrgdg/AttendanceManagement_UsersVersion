@@ -4,10 +4,12 @@ import android.Manifest
 import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -27,14 +29,17 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
     lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
-    private var isReadPermissionGranted = false
-    private var isLocationPermissionGranted = false
+    private var isInternetPermissiomGranted = false
+    private var isNotificationPermissionGranted = false
+    private var isManageStoragePermissionGranted = false
+    private var isReadStoragePermissionGranted = false
+    private var isWriteStoragePermissionGranted = false
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        getfcmtoken()
         FirebaseMessaging.getInstance().subscribeToTopic("all")
 
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
@@ -58,8 +63,11 @@ class MainActivity : AppCompatActivity() {
 
         permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()){ permissions ->
 
-            isReadPermissionGranted = permissions[Manifest.permission.READ_EXTERNAL_STORAGE] ?: isReadPermissionGranted
-            isLocationPermissionGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: isLocationPermissionGranted
+            isInternetPermissiomGranted = permissions[Manifest.permission.INTERNET] ?: isInternetPermissiomGranted
+            isNotificationPermissionGranted = permissions[Manifest.permission.POST_NOTIFICATIONS] ?: isNotificationPermissionGranted
+            isReadStoragePermissionGranted = permissions[Manifest.permission.READ_EXTERNAL_STORAGE] ?: isReadStoragePermissionGranted
+            isWriteStoragePermissionGranted = permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE] ?: isWriteStoragePermissionGranted
+            isManageStoragePermissionGranted = permissions[Manifest.permission.MANAGE_EXTERNAL_STORAGE] ?: isManageStoragePermissionGranted
 
         }
 
@@ -72,30 +80,64 @@ class MainActivity : AppCompatActivity() {
             commit()
         }
 
-    private fun requestPermission(){
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private fun requestPermission(){//Request all the required permissions at once
 
-        isReadPermissionGranted = ContextCompat.checkSelfPermission(
+        isInternetPermissiomGranted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.INTERNET
+        ) == PackageManager.PERMISSION_GRANTED
+
+        isNotificationPermissionGranted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+
+        isManageStoragePermissionGranted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.MANAGE_EXTERNAL_STORAGE
+        ) == PackageManager.PERMISSION_GRANTED
+
+        isReadStoragePermissionGranted = ContextCompat.checkSelfPermission(
             this,
             Manifest.permission.READ_EXTERNAL_STORAGE
         ) == PackageManager.PERMISSION_GRANTED
 
-        isLocationPermissionGranted = ContextCompat.checkSelfPermission(
+        isWriteStoragePermissionGranted = ContextCompat.checkSelfPermission(
             this,
-            Manifest.permission.ACCESS_FINE_LOCATION
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
         ) == PackageManager.PERMISSION_GRANTED
 
 
-        val permissionRequest : MutableList<String> = ArrayList()
+        val permissionRequest : MutableList<String> = java.util.ArrayList()
 
-        if (!isReadPermissionGranted){
+        if (!isInternetPermissiomGranted){
+
+            permissionRequest.add(Manifest.permission.INTERNET)
+
+        }
+
+        if (!isNotificationPermissionGranted){
+
+            permissionRequest.add(Manifest.permission.POST_NOTIFICATIONS)
+
+        }
+
+        if (!isReadStoragePermissionGranted){
 
             permissionRequest.add(Manifest.permission.READ_EXTERNAL_STORAGE)
 
         }
 
-        if (!isLocationPermissionGranted){
+        if (!isWriteStoragePermissionGranted){
 
-            permissionRequest.add(Manifest.permission.ACCESS_FINE_LOCATION)
+            permissionRequest.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+
+        }
+
+        if (!isManageStoragePermissionGranted){
+
+            permissionRequest.add(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
 
         }
 
@@ -106,37 +148,5 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun getfcmtoken() = CoroutineScope(Dispatchers.IO).launch{
-        FirebaseMessaging.getInstance().token   //Only to be added in admins code
-            .addOnCompleteListener { task ->
-                if (!task.isSuccessful) {
-                    Log.w("FCM", "Fetching FCM registration token failed", task.exception)
-                    return@addOnCompleteListener
-                }
-                // Get the FCM token
-                val fcmToken = task.result
-                Log.d("FCM", "FCM registration token: $fcmToken")
-                val database = FirebaseFirestore.getInstance()
-                val sharedPref = getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
-                val instituteId = sharedPref.getString("EmpInstituteId", "")
-                val employeeId = sharedPref.getString("EmpID", "")
-                if (instituteId != null && employeeId != null) {
-                    val map = mutableMapOf<String, Any>()
-                    map["fcmToken"] = fcmToken
-                    val databaseref = database.collection("Institutions")
-                        .document(instituteId)
-                        .collection("Employees")
-                        .document(employeeId)
-                    databaseref.set(map, SetOptions.merge())
-                        .addOnSuccessListener {
-                            Log.d(ContentValues.TAG, "FCM token added to database successfully")
-                        }
-                        .addOnFailureListener { e ->
-                            Log.e(ContentValues.TAG, "FCM token could not be added to database", e)
-                        }
-                } else {
-                    Log.d(ContentValues.TAG, "No institute ID/employee ID found")
-                }
-            }
-    }
+
 }

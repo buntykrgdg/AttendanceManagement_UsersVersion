@@ -10,14 +10,15 @@
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="90dp"
+        android:src="@drawable/logowithoutff"
         />
 
     <TextView
         android:id="@+id/txtHeading"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Enter the OTP which you received"
+        android:text="Enter the OTP"
         android:textSize="20sp"
         android:textAlignment="center"
         android:layout_below="@id/imgLogoRegistrationpage"
@@ -34,8 +35,9 @@
         android:layout_marginRight="120dp"
         android:textAlignment="center"
         android:inputType="number"
+        android:gravity="center"
         android:layout_centerHorizontal="true"
-        android:hint="Enter the OTP here"
+        android:hint="OTP"
         android:layout_below="@id/txtHeading"
         />
 
@@ -47,7 +49,7 @@
         android:layout_below="@id/getotp"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="15dp"
-        android:textSize="18sp"
+        android:textSize="15sp"
         />
 
     <Button
@@ -61,6 +63,7 @@
         android:paddingRight="40dp"
         android:text="Verify OTP"
         android:textSize="15sp"
+        android:textStyle="bold"
         />
 
     <ProgressBar

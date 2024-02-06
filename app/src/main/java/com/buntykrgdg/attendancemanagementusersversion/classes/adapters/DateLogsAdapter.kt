@@ -20,7 +20,7 @@ class DateLogsAdapter (val context: Context, private val allLogsList:ArrayList<C
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DateLogsViewHolder {
-        val view= LayoutInflater.from(parent.context).inflate(R.layout.datelog_item,parent,false)
+        val view= LayoutInflater.from(parent.context).inflate(R.layout.recycler_datelog_single_row,parent,false)
         return DateLogsViewHolder(view)
     }
 

@@ -19,7 +19,7 @@ class AllLogsAdapter (val context: Context, private val allLogsList:ArrayList<St
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AllLogsViewHolder {
-        val view= LayoutInflater.from(parent.context).inflate(R.layout.logs_item,parent,false)
+        val view= LayoutInflater.from(parent.context).inflate(R.layout.recycler_logs_single_row,parent,false)
         return AllLogsViewHolder(view)
     }
 

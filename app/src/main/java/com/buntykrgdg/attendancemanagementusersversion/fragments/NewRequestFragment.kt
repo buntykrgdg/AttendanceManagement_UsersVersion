@@ -1,10 +1,14 @@
 package com.buntykrgdg.attendancemanagementusersversion.fragments
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.app.DatePickerDialog
+import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,16 +18,19 @@ import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.CheckInOutLog
 import com.buntykrgdg.attendancemanagementusersversion.R
+import com.buntykrgdg.attendancemanagementusersversion.activities.LoginActivity
 import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.Employee
 import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.LeaveRequest
 import com.buntykrgdg.attendancemanagementusersversion.classes.Leaves
 import com.google.android.material.card.MaterialCardView
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.*
 import kotlinx.coroutines.tasks.await
 import org.json.JSONObject
@@ -103,10 +110,13 @@ class NewRequestFragment : Fragment() {
     private lateinit var btnSendRequestMorethan1: Button
 
     private lateinit var instituteid: String
+    private lateinit var institutename: String
     private lateinit var empid: String
     private lateinit var empname: String
     private lateinit var empdepartment: String
     private lateinit var empdesignation: String
+    private lateinit var empphno: String
+    private lateinit var empStatus: String
 
     private lateinit var halfdaysession: String
     private lateinit var halfdayleavetype: String
@@ -128,6 +138,9 @@ class NewRequestFragment : Fragment() {
     private lateinit var txtCheckInOutStatus: TextView
     private lateinit var txtMyLogs: TextView
 
+    private val firebaseauth = FirebaseAuth.getInstance()
+
+    @SuppressLint("SetTextI18n")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -145,7 +158,7 @@ class NewRequestFragment : Fragment() {
         CVRemainingleaves = view.findViewById(R.id.CVRemainingleaves)
         txtDate.text = getDate()
         txtDay.text = getDay()
-        txtSession.text = getsession()
+        txtSession.text = getSession()
 
         RLHalfDay = view.findViewById(R.id.RLHalfDay)
         HalfDaymorningRadioBtn = view.findViewById(R.id.HalfDaymorningRadioBtn)
@@ -207,28 +220,21 @@ class NewRequestFragment : Fragment() {
         txtMyLogs = view.findViewById(R.id.txtMyLogs)
 
         val reasons = listOf("Bank", "Home", "Emergency", "Others")
-        checkOutReasonAdapter = ArrayAdapter(activity as Context, android.R.layout.simple_spinner_dropdown_item, reasons)
+        checkOutReasonAdapter = ArrayAdapter(
+            activity as Context,
+            android.R.layout.simple_spinner_dropdown_item,
+            reasons
+        )
         checkOutReasonSpinner.adapter = checkOutReasonAdapter
 
-        //getCurrentStatus()
-        if(txtSession.text.toString() != "No session running" &&
-            txtSession.text.toString() != "Holiday" &&
-            txtSession.text.toString() != "Break"){
-            getCurrentStatus()
-        }else{
-            checkOutReasonSpinner.isEnabled = false
-            btnCheckIn.isEnabled = false
-            btnCheckOut.isEnabled = false
-            txtCheckInOutStatus.text = txtSession.text.toString()
-        }
 
         btnCheckIn.setOnClickListener {
             updateStatus("Checked In")
-            updateLog("---","Checked In")
+            updateLog("---", "Checked In")
         }
         btnCheckOut.setOnClickListener {
             updateStatus("Checked Out")
-            updateLog(checkOutReasonSpinner.selectedItem.toString(),"Checked Out")
+            updateLog(checkOutReasonSpinner.selectedItem.toString(), "Checked Out")
         }
 
         val firstFragment = LogsFragment()
@@ -240,6 +246,7 @@ class NewRequestFragment : Fragment() {
             activity?.getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
         if (sharedPref != null) {
             instituteid = sharedPref.getString("EmpInstituteId", "Your InsID").toString()
+            institutename = sharedPref.getString("EmpInstituteName", "Your InsName").toString()
             empid = sharedPref.getString("EmpID", "Your EmpID").toString()
             val employeefname = sharedPref.getString("FName", "Fname")
             val employeemname = sharedPref.getString("MName", "Mname")
@@ -247,10 +254,27 @@ class NewRequestFragment : Fragment() {
             empname = "$employeefname $employeemname $employeelname"
             empdepartment = sharedPref.getString("Department", "Department").toString()
             empdesignation = sharedPref.getString("Designation", "Designation").toString()
+            empphno = sharedPref.getString("PhoneNumber", "PhoneNumber").toString()
+
+            empStatus = sharedPref.getString("status", "Checked Out").toString()
             currentCL = sharedPref.getString("CL", "0")?.toDouble()!!
             currentHPL = sharedPref.getString("HPL", "0")?.toDouble()!!
             currentEL = sharedPref.getString("EL", "0")?.toDouble()!!
-            updateremainingleaves()
+
+            if (txtSession.text.toString() != "No session running" &&
+            txtSession.text.toString() != "Holiday" &&
+            txtSession.text.toString() != "Break"
+            ) {
+                getCurrentStatusFromSP()
+                getCurrentStatus()
+            } else {
+                checkOutReasonSpinner.isEnabled = false
+                btnCheckIn.isEnabled = false
+                btnCheckOut.isEnabled = false
+                txtCheckInOutStatus.text = txtSession.text.toString()
+            }
+            updateRemainingLeaves()
+            getEmployeeDetails()
         }
 
         getRemainingLeaves()
@@ -522,13 +546,13 @@ class NewRequestFragment : Fragment() {
                 R.id.FrommorningRadioBtn -> {
                     // User selected morning session
                     MorethanOnedayFromselected = "morning"
-                    updatenofoleaves(view)
+                    updateNoOfLeaves(view)
                 }
 
                 R.id.FromafternoonRadioBtn -> {
                     // User selected afternoon session
                     MorethanOnedayFromselected = "afternoon"
-                    updatenofoleaves(view)
+                    updateNoOfLeaves(view)
                 }
 
                 else -> {
@@ -542,13 +566,13 @@ class NewRequestFragment : Fragment() {
                 R.id.TomorningRadioBtn -> {
                     // User selected morning session
                     MorethanOnedayToselected = "morning"
-                    updatenofoleaves(view)
+                    updateNoOfLeaves(view)
                 }
 
                 R.id.ToafternoonRadioBtn -> {
                     // User selected afternoon session
                     MorethanOnedayToselected = "afternoon"
-                    updatenofoleaves(view)
+                    updateNoOfLeaves(view)
                 }
 
                 else -> {
@@ -719,20 +743,22 @@ class NewRequestFragment : Fragment() {
             try {
                 databaseref.set(leaveRequest).await()
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(activity as Context, "Leave request sent", Toast.LENGTH_LONG)
+                    Toast.makeText(activity as Context, "Leave request sent", Toast.LENGTH_SHORT)
                         .show()
-                    sendEmployerNotification(activity as Context)
+                    val title = "MLR"
+                    val message = "$empname has requested for a leave"
+                    sendEmployerNotification(title, message)
                     progressbarofNewRequest.visibility = View.GONE
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(activity as Context, e.message, Toast.LENGTH_LONG).show()
+                    Toast.makeText(activity as Context, e.message, Toast.LENGTH_SHORT).show()
                     progressbarofNewRequest.visibility = View.GONE
                 }
             }
         }
 
-    private fun updateLog(reason:String, status: String) =
+    private fun updateLog(reason: String, status: String) =
         CoroutineScope(Dispatchers.IO).launch {
             withContext(Dispatchers.Main) {
                 progressbarofNewRequest.visibility = View.VISIBLE
@@ -744,10 +770,13 @@ class NewRequestFragment : Fragment() {
                 val formattedDateTime = sdf.format(Date(currentTimeMillis))
                 val map = mutableMapOf<String, Any>()
                 map["Date"] = folderName
-                val databaseRef1 = Firebase.firestore.collection("Institutions/${instituteid}/Employees/${empid}/Logs").document(folderName)
+                val databaseRef1 =
+                    Firebase.firestore.collection("Institutions/${instituteid}/Employees/${empid}/Logs")
+                        .document(folderName)
                 databaseRef1.set(map, SetOptions.merge()).await()
-                val databaseRef2 = Firebase.firestore.collection("Institutions/${instituteid}/Employees/${empid}/Logs/${folderName}/CheckInCheckOut")
-                    .document(formattedDateTime)
+                val databaseRef2 =
+                    Firebase.firestore.collection("Institutions/${instituteid}/Employees/${empid}/Logs/${folderName}/CheckInCheckOut")
+                        .document(formattedDateTime)
                 val newLog = CheckInOutLog(
                     formattedDateTime.toString(),
                     reason,
@@ -755,13 +784,17 @@ class NewRequestFragment : Fragment() {
                 )
                 databaseRef2.set(newLog).await()
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(activity as Context, "Log updated", Toast.LENGTH_LONG).show()
-                    sendEmployerNotification(activity as Context)
+                    //Toast.makeText(activity as Context, "Log updated", Toast.LENGTH_SHORT).show()
+                    val title = "MLR"
+                    val message: String = if (status == "Checked In") "$empname has checked in"
+                    else "$empname has checked out for $reason"
+
+                    sendEmployerNotification(title, message)
                     progressbarofNewRequest.visibility = View.GONE
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(activity as Context, e.message, Toast.LENGTH_LONG).show()
+                    Toast.makeText(activity as Context, e.message, Toast.LENGTH_SHORT).show()
                     progressbarofNewRequest.visibility = View.GONE
                 }
             }
@@ -779,7 +812,7 @@ class NewRequestFragment : Fragment() {
             currentEL = employee.EmpEL!!
         }
         withContext(Dispatchers.Main) {
-            updateremainingleaves()
+            updateRemainingLeaves()
         }
     }
 
@@ -790,12 +823,12 @@ class NewRequestFragment : Fragment() {
             .document(empid).get().await()
         val status = doc.get("status").toString()
         withContext(Dispatchers.Main) {
-            if(status == "Checked Out"){
+            if (status == "Checked Out") {
                 btnCheckOut.isEnabled = false
                 checkOutReasonSpinner.isEnabled = false
                 btnCheckIn.isEnabled = true
                 //txtCheckInOutStatus.setTextColor(android.graphics.Color.parseColor("#F44336"))
-            }else{
+            } else {
                 btnCheckOut.isEnabled = true
                 checkOutReasonSpinner.isEnabled = true
                 btnCheckIn.isEnabled = false
@@ -805,36 +838,60 @@ class NewRequestFragment : Fragment() {
         }
     }
 
+    private fun getCurrentStatusFromSP(){
+        if (empStatus == "Checked Out") {
+            btnCheckOut.isEnabled = false
+            checkOutReasonSpinner.isEnabled = false
+            btnCheckIn.isEnabled = true
+            //txtCheckInOutStatus.setTextColor(android.graphics.Color.parseColor("#F44336"))
+        } else {
+            btnCheckOut.isEnabled = true
+            checkOutReasonSpinner.isEnabled = true
+            btnCheckIn.isEnabled = false
+            //txtCheckInOutStatus.setTextColor(android.graphics.Color.parseColor("#F44336"))
+        }
+        txtCheckInOutStatus.text = "You have $empStatus"
+    }
+
     private fun updateStatus(status: String) = CoroutineScope(Dispatchers.IO).launch{
         val map = mutableMapOf<String, Any>()
         map["status"] = status
-        val databaseref = database.collection("Institutions").document(instituteid).collection("Employees")
+        val databaseRef = database.collection("Institutions").document(instituteid).collection("Employees")
             .document(empid)
-        databaseref.set(map, SetOptions.merge()).await()
+        databaseRef.set(map, SetOptions.merge()).await()
         withContext(Dispatchers.Main){
-            Toast.makeText(activity as Context, status, Toast.LENGTH_LONG).show()
+            Toast.makeText(activity as Context, status, Toast.LENGTH_SHORT).show()
+            val sharedPref = requireActivity().getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
+            with (sharedPref.edit()) {
+                putString("status", status)
+                apply()
+            }
         }
         getCurrentStatus()
     }
 
-    private fun updateremainingleaves() {
-        txtCLcount.text = currentCL.toString()
-        txtHPLcount.text = currentHPL.toString()
-        txtELcount.text = currentEL.toString()
+    private fun updateRemainingLeaves() = CoroutineScope(Dispatchers.IO).launch {
+        try{
+            txtCLcount.text = currentCL.toString()
+            txtHPLcount.text = currentHPL.toString()
+            txtELcount.text = currentEL.toString()
 
-        val sharedPref =
-            activity?.getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
-        if (sharedPref != null) {
-            with(sharedPref.edit()) {
-                putString("CL", currentCL.toString())
-                putString("HPL", currentHPL.toString())
-                putString("EL", currentEL.toString())
-                apply()
+            val sharedPref =
+                activity?.getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
+            if (sharedPref != null) {
+                with(sharedPref.edit()) {
+                    putString("CL", currentCL.toString())
+                    putString("HPL", currentHPL.toString())
+                    putString("EL", currentEL.toString())
+                    apply()
+                }
             }
+        }catch (e:Exception){
+            Log.d("Exp", e.message.toString())
         }
     }
 
-    private fun getsession(): String {
+    private fun getSession(): String {
         // Get the current time using the Calendar class
         val currentTime = Calendar.getInstance().time
         val calendar = Calendar.getInstance()
@@ -904,11 +961,10 @@ class NewRequestFragment : Fragment() {
         datePickerDialog.show()
     }
 
-
-    private fun updatenofoleaves(view: View) {
-        val typecheckedid = RGMorethanOneDayLeaveTypeSelection.checkedRadioButtonId
-        if (typecheckedid != -1) {
-            val checkedRadioButton: RadioButton = view.findViewById(typecheckedid)
+    private fun updateNoOfLeaves(view: View) {
+        val typeCheckedId = RGMorethanOneDayLeaveTypeSelection.checkedRadioButtonId
+        if (typeCheckedId != -1) {
+            val checkedRadioButton: RadioButton = view.findViewById(typeCheckedId)
             val checkedItemText: String = checkedRadioButton.text.toString()
 
             if (checkedItemText == "CL") {
@@ -938,7 +994,7 @@ class NewRequestFragment : Fragment() {
         }
     }
 
-    private fun sendEmployerNotification(context: Context?) =
+    private fun sendEmployerNotification(title:String, message:String) =
         CoroutineScope(Dispatchers.IO).launch {
             database = FirebaseFirestore.getInstance()
             val doc = database.collection("Institutions").document(instituteid).get().await()
@@ -946,20 +1002,20 @@ class NewRequestFragment : Fragment() {
             val url = "https://fcm.googleapis.com/fcm/send"
             val jsonObject = JSONObject()
             val notificationObject = JSONObject()
-            notificationObject.put("title", "Attendance Management")
+            notificationObject.put("title", title)
             notificationObject.put(
                 "message",
-                "Employee with employee ID: $empid has requested for a leave"
+                message
             )
             jsonObject.put("data", notificationObject)
             jsonObject.put("to", fcmtoken)
 
             val request: JsonObjectRequest = object : JsonObjectRequest(
                 Method.POST, url, jsonObject,
-                { response ->
+                {
                     // Handle the response here
                 },
-                { error ->
+                {
                     // Handle the error here
                 }) {
                 override fun getHeaders(): MutableMap<String, String> {
@@ -970,7 +1026,7 @@ class NewRequestFragment : Fragment() {
                     return headers
                 }
             }
-            Volley.newRequestQueue(context).add(request)
+            Volley.newRequestQueue(activity as Context).add(request)
         }
 
     private fun setCurrentFragment(fragment: Fragment)=
@@ -979,4 +1035,96 @@ class NewRequestFragment : Fragment() {
             addToBackStack(null)
             commit()
         }
+
+    private fun logout() {// Logout from the account, clear shared preferences and start Login activity
+        firebaseauth.signOut()
+        val sharedPref = activity?.getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
+        val editor = sharedPref?.edit()
+        editor?.clear()
+        editor?.apply()
+        val intent = Intent(activity as Context, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+        startActivity(intent)
+    }
+
+    private fun getfcmtoken() = CoroutineScope(Dispatchers.IO).launch{
+        FirebaseMessaging.getInstance().token   //Only to be added in admins code
+            .addOnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    Log.w("FCM", "Fetching FCM registration token failed", task.exception)
+                    return@addOnCompleteListener
+                }
+                // Get the FCM token
+                val fcmToken = task.result
+                Log.d("FCM", "FCM registration token: $fcmToken")
+                val database = FirebaseFirestore.getInstance()
+                val sharedPref = activity?.getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
+                val instituteId = sharedPref?.getString("EmpInstituteId", "")
+                val employeeId = sharedPref?.getString("EmpID", "")
+                if (instituteId != null && employeeId != null) {
+                    val map = mutableMapOf<String, Any>()
+                    map["fcmToken"] = fcmToken
+                    val databaseref = database.collection("Institutions")
+                        .document(instituteId)
+                        .collection("Employees")
+                        .document(employeeId)
+                    databaseref.set(map, SetOptions.merge())
+                        .addOnSuccessListener {
+                            Log.d(ContentValues.TAG, "FCM token added to database successfully")
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e(ContentValues.TAG, "FCM token could not be added to database", e)
+                        }
+                } else {
+                    Log.d(ContentValues.TAG, "No institute ID/employee ID found")
+                }
+            }
+    }
+
+    private fun getEmployeeDetails()= CoroutineScope(Dispatchers.IO).launch{
+        val dbref = database.collection("Institutions").document(instituteid).collection("Employees")
+        val querySnapshot = dbref.whereEqualTo("empId", empid).get().await()
+        if (querySnapshot.isEmpty){
+            withContext(Dispatchers.Main){
+                Toast.makeText(activity as Context, "Your account has been deleted", Toast.LENGTH_LONG).show()
+                logout()
+            }
+        }else{
+            for (document in querySnapshot) {
+                Log.d("querys", querySnapshot.toString())
+                val employee = document.toObject<Employee>()
+                if (employee.EmpPhoneNo != empphno){
+                    withContext(Dispatchers.Main){
+                        Toast.makeText(activity as Context, "Your number has been changed by Employer", Toast.LENGTH_LONG).show()
+                        logout()
+                    }
+                }
+                else{
+                    getfcmtoken()
+                    val sharedPref = activity?.getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
+                    if (sharedPref != null) {
+                        with (sharedPref.edit()) {
+                            putString("EmpID", employee.EmpId)
+                            putString("EmpInstituteName", institutename)
+                            putString("EmpInstituteId", instituteid)
+                            putString("FName", employee.EmpFirstName)
+                            putString("MName", employee.EmpMiddleName)
+                            putString("LName", employee.EmpLastName)
+                            putString("Designation", employee.EmpDesignation)
+                            putString("Department", employee.EmpDepartment)
+                            putString("DateOfBirth", employee.EmpDOB)
+                            putString("DateOfAppointment", employee.EmpDOA)
+                            putString("PhoneNumber", employee.EmpPhoneNo)
+                            putString("EmailId", employee.EmpEmailId)
+                            putString("status", "Checked Out")
+                            employee.EmpCL?.let { putString("CL", it.toString()) }
+                            employee.EmpHPL?.let { putString("HPL", it.toString()) }
+                            employee.EmpEL?.let { putString("EL", it.toString()) }
+                            apply()
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
