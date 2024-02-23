@@ -2,6 +2,7 @@ package com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses
 
 data class LeaveRequest (
     val timestamp: String? = "",
+    val employeephno: String? = "",
     val employeeid: String?= "",
     val instituteid: String?= "",
     val employeename: String?= "",

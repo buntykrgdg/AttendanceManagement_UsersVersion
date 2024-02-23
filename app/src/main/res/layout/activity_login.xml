@@ -46,7 +46,7 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.hbb20.CountryCodePicker
-        android:id="@+id/countyrycodepicker"
+        android:id="@+id/countrycodepicker"
         android:layout_below="@id/CompanyIDLYT"
         android:layout_marginTop="30dp"
         android:layout_width="match_parent"
@@ -67,7 +67,7 @@
         android:inputType="number"
         android:hint="Enter your number here"
         android:layout_marginTop="10dp"
-        android:layout_below="@id/countyrycodepicker"
+        android:layout_below="@id/countrycodepicker"
         />
 
     <Button

@@ -1,12 +1,9 @@
 package com.buntykrgdg.attendancemanagementusersversion.activities
 
 import android.Manifest
-import android.content.ContentValues
-import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -15,21 +12,15 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.buntykrgdg.attendancemanagementusersversion.fragments.NoticesFragment
 import com.buntykrgdg.attendancemanagementusersversion.R
+import com.buntykrgdg.attendancemanagementusersversion.databinding.ActivityMainBinding
 import com.buntykrgdg.attendancemanagementusersversion.fragments.HistoryFragment
 import com.buntykrgdg.attendancemanagementusersversion.fragments.NewRequestFragment
 import com.buntykrgdg.attendancemanagementusersversion.fragments.ProfileFragment
-import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
-import com.google.firebase.messaging.FirebaseMessaging
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
-    lateinit var bottomNavigationView: BottomNavigationView
+    private lateinit var binding: ActivityMainBinding
     private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
-    private var isInternetPermissiomGranted = false
+    private var isInternetPermissionGranted = false
     private var isNotificationPermissionGranted = false
     private var isManageStoragePermissionGranted = false
     private var isReadStoragePermissionGranted = false
@@ -38,11 +29,9 @@ class MainActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        FirebaseMessaging.getInstance().subscribeToTopic("all")
-
-        bottomNavigationView = findViewById(R.id.bottomNavigationView)
         val firstFragment = NewRequestFragment()
         val secondFragment = HistoryFragment()
         val thirdFragment = ProfileFragment()
@@ -50,7 +39,7 @@ class MainActivity : AppCompatActivity() {
 
         setCurrentFragment(firstFragment)
 
-        bottomNavigationView.setOnNavigationItemSelectedListener {
+        binding.bottomNavigationView.setOnNavigationItemSelectedListener {
             when(it.itemId){
                 R.id.newRequest_menu ->setCurrentFragment(firstFragment)
                 R.id.history_menu ->setCurrentFragment(secondFragment)
@@ -63,7 +52,7 @@ class MainActivity : AppCompatActivity() {
 
         permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()){ permissions ->
 
-            isInternetPermissiomGranted = permissions[Manifest.permission.INTERNET] ?: isInternetPermissiomGranted
+            isInternetPermissionGranted = permissions[Manifest.permission.INTERNET] ?: isInternetPermissionGranted
             isNotificationPermissionGranted = permissions[Manifest.permission.POST_NOTIFICATIONS] ?: isNotificationPermissionGranted
             isReadStoragePermissionGranted = permissions[Manifest.permission.READ_EXTERNAL_STORAGE] ?: isReadStoragePermissionGranted
             isWriteStoragePermissionGranted = permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE] ?: isWriteStoragePermissionGranted
@@ -83,7 +72,7 @@ class MainActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun requestPermission(){//Request all the required permissions at once
 
-        isInternetPermissiomGranted = ContextCompat.checkSelfPermission(
+        isInternetPermissionGranted = ContextCompat.checkSelfPermission(
             this,
             Manifest.permission.INTERNET
         ) == PackageManager.PERMISSION_GRANTED
@@ -111,7 +100,7 @@ class MainActivity : AppCompatActivity() {
 
         val permissionRequest : MutableList<String> = java.util.ArrayList()
 
-        if (!isInternetPermissiomGranted){
+        if (!isInternetPermissionGranted){
 
             permissionRequest.add(Manifest.permission.INTERNET)
 

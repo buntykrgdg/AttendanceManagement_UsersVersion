@@ -12,11 +12,15 @@ import com.google.firebase.firestore.SetOptions
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class MyFirebaseMessagingService: FirebaseMessagingService() {
 
     override fun onCreate() {
-        getfcmtoken()
+        //getfcmtoken()
         super.onCreate()
     }
 
@@ -43,60 +47,56 @@ class MyFirebaseMessagingService: FirebaseMessagingService() {
     }
 
     override fun onNewToken(token: String) {
-        val database = FirebaseFirestore.getInstance()
         val sharedPref = getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
         val instituteId = sharedPref.getString("EmpInstituteId", "")
-        val employeeId = sharedPref.getString("EmpID", "")
-        if (instituteId != null && employeeId != null) {
-            val map = mutableMapOf<String, Any>()
-            map["fcmToken"] = token
-            val databaseref = database.collection("Institutions")
-                .document(instituteId)
-                .collection("Employees")
-                .document(employeeId)
-            databaseref.set(map, SetOptions.merge())
-                .addOnSuccessListener {
-                    Log.d(ContentValues.TAG, "FCM token added to database successfully")
-                }
-                .addOnFailureListener { e ->
-                    Log.e(ContentValues.TAG, "FCM token could not be added to database", e)
-                }
-        } else {
-            Log.d(ContentValues.TAG, "No institute ID/employee ID found")
+        val empPhNo = sharedPref.getString("PhoneNumber", "PhoneNumber")
+
+        if (instituteId.isNullOrEmpty() || empPhNo.isNullOrEmpty()) {
+            Log.d(ContentValues.TAG, "No institute ID/employee phone number found")
+            return
         }
+        val map = mapOf("fcmToken" to token)
+        val databaseRef = FirebaseFirestore.getInstance()
+            .collection("Institutions")
+            .document(instituteId)
+            .collection("Employees")
+            .document(empPhNo)
+
+        databaseRef.set(map, SetOptions.merge())
+            .addOnSuccessListener {
+                Log.d(ContentValues.TAG, "FCM token added to database successfully")
+            }
+            .addOnFailureListener { e ->
+                Log.e(ContentValues.TAG, "FCM token could not be added to database", e)
+            }
     }
 
-    private fun getfcmtoken(){
-        FirebaseMessaging.getInstance().token   //Only to be added in admins code
-            .addOnCompleteListener { task ->
-                if (!task.isSuccessful) {
-                    Log.w("FCM", "Fetching FCM registration token failed", task.exception)
-                    return@addOnCompleteListener
-                }
-                // Get the FCM token
-                val fcmToken = task.result
-                Log.d("FCM", "FCM registration token: $fcmToken")
-                val database = FirebaseFirestore.getInstance()
-                val sharedPref = getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
-                val instituteId = sharedPref.getString("EmpInstituteId", "")
-                val employeeId = sharedPref.getString("EmpID", "")
-                if (instituteId != null && employeeId != null) {
-                    val map = mutableMapOf<String, Any>()
-                    map["fcmToken"] = fcmToken
-                    val databaseref = database.collection("Institutions")
-                        .document(instituteId)
-                        .collection("Employees")
-                        .document(employeeId)
-                    databaseref.set(map, SetOptions.merge())
-                        .addOnSuccessListener {
-                            Log.d(ContentValues.TAG, "FCM token added to database successfully")
-                        }
-                        .addOnFailureListener { e ->
-                            Log.e(ContentValues.TAG, "FCM token could not be added to database", e)
-                        }
-                } else {
-                    Log.d(ContentValues.TAG, "No institute ID/employee ID found")
-                }
+
+    private fun getFcmToken() = CoroutineScope(Dispatchers.IO).launch {
+        try {
+            // Retrieve the FCM token in a non-blocking way
+            val fcmToken = FirebaseMessaging.getInstance().token.await()
+
+            // Continue only if the shared preferences are available
+            val sharedPref = getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
+            val instituteId = sharedPref?.getString("EmpInstituteId", "")
+            val employeePhno = sharedPref?.getString("PhoneNumber", "")
+            if (instituteId.isNullOrEmpty() || employeePhno.isNullOrEmpty()) {
+                Log.d(ContentValues.TAG, "No institute ID/employee ID found")
+                return@launch
             }
+
+            // Prepare the data to be updated in Firestore
+            val map = mutableMapOf<String, Any>("fcmToken" to fcmToken)
+            val databaseRef = FirebaseFirestore.getInstance().collection("Institutions")
+                .document(instituteId)
+                .collection("Employees")
+                .document(employeePhno)
+
+            // Merge the FCM token into the Firestore document
+            databaseRef.set(map, SetOptions.merge()).await()
+        } catch (e: Exception) {
+            Log.d(ContentValues.TAG, "Error fetching FCM token or updating Firestore: ${e.message}")
+        }
     }
 }

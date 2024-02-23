@@ -15,56 +15,55 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.buntykrgdg.attendancemanagementusersversion.R
 import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.Employee
+import com.buntykrgdg.attendancemanagementusersversion.databinding.ActivityFirebaseAuthBinding
+import com.buntykrgdg.attendancemanagementusersversion.databinding.ActivityLoginBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.ktx.toObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+
 
 class FirebaseAuthActivity : AppCompatActivity() {
-    private lateinit var txtChangeNumber: TextView
-    private lateinit var getOtp: EditText
-    private lateinit var btnVerifyOtp: Button
+    private lateinit var binding: ActivityFirebaseAuthBinding
+    
     private lateinit var enteredOtp: String
     private lateinit var firebaseAuth: FirebaseAuth
-    private lateinit var progressbarOfOtpVerification: ProgressBar
     private lateinit var employeeDetails: Employee
     private lateinit var instituteName: String
     private lateinit var instituteId: String
-    private var database = FirebaseFirestore.getInstance()
+    private lateinit var phNumber: String
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_firebase_auth)
-        txtChangeNumber = findViewById(R.id.txtChangenumber)
-        getOtp =findViewById(R.id.getotp)
-        btnVerifyOtp = findViewById(R.id.btnverifyotp)
-        progressbarOfOtpVerification = findViewById(R.id.progressbarofotpverification)
+        binding = ActivityFirebaseAuthBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        
         firebaseAuth = FirebaseAuth.getInstance()
 
-        txtChangeNumber.setOnClickListener{
+        binding.txtChangenumber.setOnClickListener{
             val intent = Intent(this@FirebaseAuthActivity, LoginActivity::class.java)
             startActivity(intent)
+            finish()
         }
 
-        employeeDetails = intent.getSerializableExtra("employeedetails") as Employee
         instituteId = intent.getStringExtra("instituteid").toString()
+        phNumber = intent.getStringExtra("phNumber").toString()
 
-        getInstituteName()
-
-        btnVerifyOtp.setOnClickListener {
-            enteredOtp = getOtp.text.toString()
+        binding.btnverifyotp.setOnClickListener {
+            enteredOtp = binding.getotp.text.toString()
             if(enteredOtp.isEmpty()){
                 Toast.makeText(applicationContext, "Enter your OTP first", Toast.LENGTH_SHORT).show()
             }
             else{
-                progressbarOfOtpVerification.visibility = View.VISIBLE
+                binding.progressbarofotpverification.visibility = View.VISIBLE
                 val receivedCode: String = intent.getStringExtra("otp").toString()
                 val credential: PhoneAuthCredential = PhoneAuthProvider.getCredential(receivedCode, enteredOtp)
                 signInWithPhoneAuthCredential(credential)
@@ -75,45 +74,90 @@ class FirebaseAuthActivity : AppCompatActivity() {
     private fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential) = CoroutineScope(Dispatchers.IO).launch {
         firebaseAuth.signInWithCredential(credential).addOnCompleteListener { p0 ->
             if (p0.isSuccessful) {
-                progressbarOfOtpVerification.visibility = View.INVISIBLE
-                Toast.makeText(applicationContext, "Login Successful", Toast.LENGTH_SHORT).show()
-                getInstituteName()
-                saveToSharedPreferences(employeeDetails)
-                val intent = Intent(this@FirebaseAuthActivity, MainActivity::class.java)
-                startActivity(intent)
-                finish()
+                executeInOrder()
             } else {
                 if (p0.exception is FirebaseAuthInvalidCredentialsException) {
-                    progressbarOfOtpVerification.visibility = View.INVISIBLE
+                    binding.progressbarofotpverification.visibility = View.INVISIBLE
                     Toast.makeText(applicationContext, "Login Failed", Toast.LENGTH_SHORT).show()
                 }
             }
         }
     }
 
-    private fun getInstituteName() = CoroutineScope(Dispatchers.IO).launch {
-        val job = updateUid()
-        job.join()
-        val databaseRef = database.collection("Institutions").document(instituteId)
-        val querySnapshot = databaseRef.get().await()
-        instituteName = querySnapshot.get("name").toString()
-        Log.d("name", instituteName)
+    private fun executeInOrder() = CoroutineScope(Dispatchers.IO).launch {
+        val task1 = getEmployeeDetails()
+        task1.join()
+        val task2 = updateUid()
+        task2.join()
+        val task3 = getInstituteName()
+        task3.join()
+        saveToSharedPreferences(employeeDetails)
     }
 
-    private fun updateUid() = CoroutineScope(Dispatchers.IO).launch {
-        val databaseRef =
-            employeeDetails.EmpId?.let {
-                database.collection("Institutions").document(instituteId).collection("Employees").document(
-                    it
-                )
+    private fun getEmployeeDetails() = CoroutineScope(Dispatchers.IO).launch {
+        val db = FirebaseFirestore.getInstance()
+        try {
+            val doc = db.collection("Institutions").document(instituteId)
+                .collection("Employees").document(phNumber).get().await()
+            if(!doc.exists()){
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        applicationContext,
+                        "Employee Not found",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }else{
+                employeeDetails = doc.toObject<Employee>()!!
             }
+        }catch (e: Exception){
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    applicationContext,
+                    e.message,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+    private fun updateUid() = CoroutineScope(Dispatchers.IO).launch {
+        val db = FirebaseFirestore.getInstance()
+        val dbRef = db.collection("Institutions").document(instituteId).collection("Employees").document(phNumber)
         val map = mutableMapOf<String, Any>()
         map["uid"] = firebaseAuth.uid.toString()
-        databaseRef?.set(map, SetOptions.merge())?.await()
+        try{
+            dbRef.update(map).await()
+        }catch (e: Exception){
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    applicationContext,
+                    e.message,
+                    Toast.LENGTH_SHORT
+                ).show()
+                Log.d("user_uU", e.message.toString())
+            }
+        }
+    }
+    private fun getInstituteName() = CoroutineScope(Dispatchers.IO).launch {
+        val db = FirebaseFirestore.getInstance()
+        try{
+            val doc = db.collection("Institutions").document(instituteId).get().await()
+            if(doc.exists()){
+                instituteName = doc.get("name").toString()
+            }
+        }catch (e: Exception){
+            withContext(Dispatchers.Main){
+                Toast.makeText(
+                    applicationContext,
+                    e.message,
+                    Toast.LENGTH_SHORT
+                ).show()
+                Log.d("user_gIN", e.message.toString())
+            }
+        }
     }
 
-    private fun saveToSharedPreferences(employee: Employee) = CoroutineScope(
-        Dispatchers.IO).launch{
+    private fun saveToSharedPreferences(employee: Employee) = CoroutineScope(Dispatchers.IO).launch{
         val sharedPref = getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
         with (sharedPref.edit()) {
             putString("EmpID", employee.EmpId)
@@ -133,6 +177,12 @@ class FirebaseAuthActivity : AppCompatActivity() {
             employee.EmpHPL?.let { putString("HPL", it.toString()) }
             employee.EmpEL?.let { putString("EL", it.toString()) }
             apply()
+        }
+        withContext(Dispatchers.Main){
+            Toast.makeText(applicationContext, "Login Successful", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this@FirebaseAuthActivity, MainActivity::class.java)
+            startActivity(intent)
+            finish()
         }
     }
 }

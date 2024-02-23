@@ -8,14 +8,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.buntykrgdg.attendancemanagementusersversion.R
+import androidx.fragment.app.FragmentTransaction
 import com.buntykrgdg.attendancemanagementusersversion.activities.LoginActivity
 import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.Employee
-import com.google.android.material.textfield.TextInputEditText
+import com.buntykrgdg.attendancemanagementusersversion.databinding.FragmentProfileBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObject
@@ -26,22 +24,6 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 class ProfileFragment : Fragment() {
-
-    private lateinit var swipeToRefreshProfile: SwipeRefreshLayout
-
-    private lateinit var txtUpperName: TextView
-    private lateinit var txtUpperDepartment: TextView
-    private lateinit var empFirstName: TextInputEditText
-    private lateinit var empMiddleName: TextInputEditText
-    private lateinit var empLastName: TextInputEditText
-    private lateinit var empInstitute: TextInputEditText
-    private lateinit var empDesignation: TextInputEditText
-    private lateinit var empDepartment: TextInputEditText
-    private lateinit var empDOB: TextInputEditText
-    private lateinit var empDOA: TextInputEditText
-    private lateinit var empPhoneNo: TextInputEditText
-    private lateinit var empEmailId: TextInputEditText
-    private lateinit var btnLogout: Button
 
     private lateinit var instituteId: String
     private lateinit var instituteName: String
@@ -58,39 +40,24 @@ class ProfileFragment : Fragment() {
     private val db = FirebaseFirestore.getInstance()
     private val firebaseauth = FirebaseAuth.getInstance()
 
-
+    private var fragmentProfileBinding: FragmentProfileBinding? = null
+    private val binding get() = fragmentProfileBinding!!
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_profile_, container, false)
-
-        swipeToRefreshProfile=view.findViewById(R.id.swipeToRefreshProfile)
-        txtUpperName = view.findViewById(R.id.txtUpperName)
-        txtUpperDepartment = view.findViewById(R.id.txtUpperDepartment)
-        empFirstName = view.findViewById(R.id.EmpFirstName)
-        empMiddleName = view.findViewById(R.id.EmpMiddleName)
-        empLastName = view.findViewById(R.id.EmpLastName)
-        empInstitute = view.findViewById(R.id.EmpInstitute)
-        empDesignation = view.findViewById(R.id.EmpDesignation)
-        empDepartment = view.findViewById(R.id.EmpDepartment)
-        empDOB = view.findViewById(R.id.EmpDOB)
-        empDOA = view.findViewById(R.id.EmpDOA)
-        empPhoneNo = view.findViewById(R.id.EmpPhoneNo)
-        empEmailId = view.findViewById(R.id.EmpEmailId)
-        btnLogout = view.findViewById(R.id.btnLogout)
+        fragmentProfileBinding = FragmentProfileBinding.inflate(inflater, container, false)
 
         loadEmployeeDetails()
 
-        btnLogout.setOnClickListener {
+        binding.btnLogout.setOnClickListener {
             logout()
         }
 
-        swipeToRefreshProfile.setOnRefreshListener {
+        binding.swipeToRefreshProfile.setOnRefreshListener {
             getEmployeeDetails()
         }
-        
-        return view
+        return binding.root
     }
 
     @SuppressLint("SetTextI18n")
@@ -110,20 +77,20 @@ class ProfileFragment : Fragment() {
             empphno = sharedPref.getString("PhoneNumber", "PhoneNumber").toString()
             empemail = sharedPref.getString("EmailId", "EmailId").toString()
         }
-        txtUpperName.text = "$empfname $emplname"
-        txtUpperDepartment.text = empdepartment
-        empFirstName.setText(empfname)
-        empMiddleName.setText(empmname)
-        empLastName.setText(emplname)
-        empInstitute.setText("$instituteName($instituteId)")
-        empDesignation.setText(empdesignation)
-        empDepartment.setText(empdepartment)
-        empDOB.setText(empdob)
-        empDOA.setText(empdoa)
-        empPhoneNo.setText(empphno)
-        empEmailId.setText(empemail)
+        binding.txtUpperName.text = "$empfname $emplname"
+        binding.txtUpperDepartment.text = empdepartment
+        binding.EmpFirstName.setText(empfname)
+        binding.EmpMiddleName.setText(empmname)
+        binding.EmpLastName.setText(emplname)
+        binding.EmpInstitute.setText("$instituteName($instituteId)")
+        binding.EmpDesignation.setText(empdesignation)
+        binding.EmpDepartment.setText(empdepartment)
+        binding.EmpDOB.setText(empdob)
+        binding.EmpDOA.setText(empdoa)
+        binding.EmpPhoneNo.setText(empphno)
+        binding.EmpEmailId.setText(empemail)
 
-        swipeToRefreshProfile.isRefreshing = false
+        binding.swipeToRefreshProfile.isRefreshing = false
     }
     private fun logout() {// Logout from the account, clear shared preferences and start Login activity
         val dialogBuilder = AlertDialog.Builder(activity as Context)
@@ -144,34 +111,59 @@ class ProfileFragment : Fragment() {
     }
 
     private fun getEmployeeDetails()= CoroutineScope(Dispatchers.IO).launch{
-        val dbref = db.collection("Institutions").document(instituteId).collection("Employees")
-        val querySnapshot = dbref.whereEqualTo("empId", empid).get().await()
-        for (document in querySnapshot) {
-            val employee = document.toObject<Employee>()
-            val sharedPref = activity?.getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
-            if (sharedPref != null) {
-                with (sharedPref.edit()) {
-                    putString("EmpID", employee.EmpId)
-                    putString("EmpInstituteName", instituteName)
-                    putString("EmpInstituteId", instituteId)
-                    putString("FName", employee.EmpFirstName)
-                    putString("MName", employee.EmpMiddleName)
-                    putString("LName", employee.EmpLastName)
-                    putString("Designation", employee.EmpDesignation)
-                    putString("Department", employee.EmpDepartment)
-                    putString("DateOfBirth", employee.EmpDOB)
-                    putString("DateOfAppointment", employee.EmpDOA)
-                    putString("PhoneNumber", employee.EmpPhoneNo)
-                    putString("EmailId", employee.EmpEmailId)
-                    putString("status", "Checked Out")
-                    employee.EmpCL?.let { putString("CL", it.toString()) }
-                    employee.EmpHPL?.let { putString("HPL", it.toString()) }
-                    employee.EmpEL?.let { putString("EL", it.toString()) }
-                    apply()
+        try{
+            val doc = db.collection("Institutions").document(instituteId).collection("Employees")
+                .document(empphno).get().await()
+            if(doc.exists()){
+                val employee = doc.toObject<Employee>()
+                if(employee!=null) {
+                    val sharedPref = activity?.getSharedPreferences(
+                        "AttendanceManagementUV",
+                        Context.MODE_PRIVATE
+                    )
+                    if (sharedPref != null) {
+                        with(sharedPref.edit()) {
+                            putString("EmpID", employee.EmpId)
+                            putString("EmpInstituteName", instituteName)
+                            putString("EmpInstituteId", instituteId)
+                            putString("FName", employee.EmpFirstName)
+                            putString("MName", employee.EmpMiddleName)
+                            putString("LName", employee.EmpLastName)
+                            putString("Designation", employee.EmpDesignation)
+                            putString("Department", employee.EmpDepartment)
+                            putString("DateOfBirth", employee.EmpDOB)
+                            putString("DateOfAppointment", employee.EmpDOA)
+                            putString("PhoneNumber", employee.EmpPhoneNo)
+                            putString("EmailId", employee.EmpEmailId)
+                            putString("status", "Checked Out")
+                            employee.EmpCL?.let { putString("CL", it.toString()) }
+                            employee.EmpHPL?.let { putString("HPL", it.toString()) }
+                            employee.EmpEL?.let { putString("EL", it.toString()) }
+                            apply()
+                        }
+                    }
+                }
+            }else{
+                withContext(Dispatchers.Main){
+                    Toast.makeText(activity as Context, "Employee not found", Toast.LENGTH_SHORT).show()
                 }
             }
-            withContext(Dispatchers.Main){
-                loadEmployeeDetails()
+        }catch (e: Exception){
+            Toast.makeText(activity as Context, e.message, Toast.LENGTH_SHORT).show()
+        }
+        binding.swipeToRefreshProfile.isRefreshing = false
+        reloadFragment()
+    }
+
+    private fun reloadFragment(){ // Complete
+        var frg: Fragment? = null
+        frg = activity?.supportFragmentManager?.findFragmentByTag("ProfileFragment")
+        val ft: FragmentTransaction? = activity?.supportFragmentManager?.beginTransaction()
+        if (frg != null) {
+            if (ft != null) {
+                ft.detach(frg)
+                ft.attach(frg)
+                ft.commit()
             }
         }
     }

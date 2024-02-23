@@ -1,7 +1,6 @@
 package com.buntykrgdg.attendancemanagementusersversion.fragments
 
 import android.annotation.SuppressLint
-import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.content.ContentValues
 import android.content.Context
@@ -22,6 +21,8 @@ import com.buntykrgdg.attendancemanagementusersversion.activities.LoginActivity
 import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.Employee
 import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.LeaveRequest
 import com.buntykrgdg.attendancemanagementusersversion.classes.Leaves
+import com.buntykrgdg.attendancemanagementusersversion.databinding.FragmentNewRequestBinding
+import com.buntykrgdg.attendancemanagementusersversion.databinding.FragmentProfileBinding
 import com.google.android.material.card.MaterialCardView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
@@ -40,15 +41,9 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 
 class NewRequestFragment : Fragment() {
-    private lateinit var txtDate: TextView
-    private lateinit var txtDay: TextView
-    private lateinit var txtTime: TextView
-    private lateinit var txtSession: TextView
-    private lateinit var txtCLcount: TextView
-    private lateinit var txtHPLcount: TextView
-    private lateinit var txtELcount: TextView
-    private lateinit var progressbarofNewRequest: ProgressBar
-    private lateinit var CVRemainingleaves: MaterialCardView
+    private var fragmentNewRequestBinding: FragmentNewRequestBinding? = null
+    private val binding get() = fragmentNewRequestBinding!!
+    
     private var database = FirebaseFirestore.getInstance()
     private var currentCL: Double = 0.0
     private var currentHPL: Double = 0.0
@@ -56,58 +51,6 @@ class NewRequestFragment : Fragment() {
 
     @SuppressLint("SimpleDateFormat")
     private val dateFormat = SimpleDateFormat("hh:mm:ss a")
-
-    private lateinit var RDLeaveRange: RadioGroup // Leave range selector
-    private lateinit var RBHalfDay: RadioButton
-    private lateinit var RBOneDay: RadioButton
-    private lateinit var RBMorethanOne: RadioButton
-
-    private lateinit var RLHalfDay: RelativeLayout // Half day leave
-    private lateinit var halfdayleavedate: EditText
-    private lateinit var RGHalfDay: RadioGroup
-    private lateinit var HalfDaymorningRadioBtn: RadioButton
-    private lateinit var HalfDayafternoonRadioBtn: RadioButton
-    private lateinit var btnHalfDaydate: ImageButton
-    private lateinit var RGHalfDayLeaveTypeSelection: RadioGroup
-    private lateinit var HalfDayCLRadioBtn: RadioButton
-    private lateinit var HalfDayHPLRadioBtn: RadioButton
-    private lateinit var HalfDayELRadioBtn: RadioButton
-    private lateinit var txtHalfDayNoofleaves: TextView
-    private lateinit var txtHalfDayNote: TextView
-    private lateinit var ETHalfDayleaveReason: EditText
-    private lateinit var btnSendRequestHalfDay: Button
-
-    private lateinit var RLOneDay: RelativeLayout // One day leave
-    private lateinit var onedayleavedate: EditText
-    private lateinit var btnSelectonedayleavedate: ImageButton
-    private lateinit var RGOneDayLeaveTypeSelection: RadioGroup
-    private lateinit var OneDayCLRadioBtn: RadioButton
-    private lateinit var OneDayHPLRadioBtn: RadioButton
-    private lateinit var OneDayELRadioBtn: RadioButton
-    private lateinit var txtOneDayNoofleaves: TextView
-    private lateinit var txtOneDayNote: TextView
-    private lateinit var ETonedayleaveReason: EditText
-    private lateinit var btnSendRequestOneDay: Button
-
-    private lateinit var RLMorethan1: RelativeLayout //More than 1 day leave
-    private lateinit var leavefromdate: EditText
-    private lateinit var RGradiofrom: RadioGroup
-    private lateinit var FrommorningRadioBtn: RadioButton
-    private lateinit var FromafternoonRadioBtn: RadioButton
-    private lateinit var btnSelectfromdate: ImageButton
-    private lateinit var leavetodate: EditText
-    private lateinit var RGradioto: RadioGroup
-    private lateinit var TomorningRadioBtn: RadioButton
-    private lateinit var ToafternoonRadioBtn: RadioButton
-    private lateinit var btnSelecttodate: ImageButton
-    private lateinit var RGMorethanOneDayLeaveTypeSelection: RadioGroup
-    private lateinit var MorethanOneDayCLRadioBtn: RadioButton
-    private lateinit var MorethanOneDayHPLRadioBtn: RadioButton
-    private lateinit var MorethanOneDayELRadioBtn: RadioButton
-    private lateinit var txtMorethanOneDayNoofleaves: TextView
-    private lateinit var txtMoreThanOneDayNote: TextView
-    private lateinit var ETleaveReason: EditText
-    private lateinit var btnSendRequestMorethan1: Button
 
     private lateinit var instituteid: String
     private lateinit var institutename: String
@@ -131,12 +74,8 @@ class NewRequestFragment : Fragment() {
     private var MorethanOnedayFromselected: String = "null"
     private var MorethanOnedayToselected: String = "null"
 
-    private lateinit var checkOutReasonSpinner: Spinner
     private lateinit var checkOutReasonAdapter: ArrayAdapter<String>
-    private lateinit var btnCheckIn: Button
-    private lateinit var btnCheckOut: Button
-    private lateinit var txtCheckInOutStatus: TextView
-    private lateinit var txtMyLogs: TextView
+    
 
     private val firebaseauth = FirebaseAuth.getInstance()
 
@@ -145,106 +84,41 @@ class NewRequestFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_new_request_, container, false)
+        fragmentNewRequestBinding = FragmentNewRequestBinding.inflate(inflater, container, false)
 
-        txtDate = view.findViewById(R.id.txtDate)
-        txtDay = view.findViewById(R.id.txtDay)
-        txtTime = view.findViewById(R.id.txtTime)
-        txtSession = view.findViewById(R.id.txtSession)
-        txtCLcount = view.findViewById(R.id.txtCLcount)
-        txtHPLcount = view.findViewById(R.id.txtHPLcount)
-        txtELcount = view.findViewById(R.id.txtELcount)
-        progressbarofNewRequest = view.findViewById(R.id.progressbarofNewRequest)
-        CVRemainingleaves = view.findViewById(R.id.CVRemainingleaves)
-        txtDate.text = getDate()
-        txtDay.text = getDay()
-        txtSession.text = getSession()
+        val view = inflater.inflate(R.layout.fragment_blank, container, false)
 
-        RLHalfDay = view.findViewById(R.id.RLHalfDay)
-        HalfDaymorningRadioBtn = view.findViewById(R.id.HalfDaymorningRadioBtn)
-        HalfDayafternoonRadioBtn = view.findViewById(R.id.HalfDayafternoonRadioBtn)
-        RGHalfDay = view.findViewById(R.id.RGHalfDay)
-        halfdayleavedate = view.findViewById(R.id.halfdayleavedate)
-        btnHalfDaydate = view.findViewById(R.id.btnHalfDaydate)
-        RGHalfDayLeaveTypeSelection = view.findViewById(R.id.RGHalfDayLeaveTypeSelection)
-        HalfDayCLRadioBtn = view.findViewById(R.id.HalfDayCLRadioBtn)
-        HalfDayHPLRadioBtn = view.findViewById(R.id.HalfDayHPLRadioBtn)
-        HalfDayELRadioBtn = view.findViewById(R.id.HalfDayELRadioBtn)
-        txtHalfDayNoofleaves = view.findViewById(R.id.txtHalfDayNoofleaves)
-        txtHalfDayNote = view.findViewById(R.id.txtHalfDayNote)
-        ETHalfDayleaveReason = view.findViewById(R.id.ETHalfDayleaveReason)
-        btnSendRequestHalfDay = view.findViewById(R.id.btnSendRequestHalfDay)
-
-        RLOneDay = view.findViewById(R.id.RLOneDay)
-        onedayleavedate = view.findViewById(R.id.onedayleavedate)
-        btnSelectonedayleavedate = view.findViewById(R.id.btnSelectonedayleavedate)
-        RGOneDayLeaveTypeSelection = view.findViewById(R.id.RGOneDayLeaveTypeSelection)
-        OneDayCLRadioBtn = view.findViewById(R.id.OneDayCLRadioBtn)
-        OneDayHPLRadioBtn = view.findViewById(R.id.OneDayHPLRadioBtn)
-        OneDayELRadioBtn = view.findViewById(R.id.OneDayELRadioBtn)
-        txtOneDayNoofleaves = view.findViewById(R.id.txtOneDayNoofleaves)
-        txtOneDayNote = view.findViewById(R.id.txtOneDayNote)
-        ETonedayleaveReason = view.findViewById(R.id.ETonedayleaveReason)
-        btnSendRequestOneDay = view.findViewById(R.id.btnSendRequestOneDay)
-
-        RLMorethan1 = view.findViewById(R.id.RLMorethan1)
-        leavefromdate = view.findViewById(R.id.leavefromdate)
-        btnSelectfromdate = view.findViewById(R.id.btnSelectfromdate)
-        leavetodate = view.findViewById(R.id.leavetodate)
-        btnSelecttodate = view.findViewById(R.id.btnSelecttodate)
-        RGradiofrom = view.findViewById(R.id.RGradiofrom)
-        RGradioto = view.findViewById(R.id.RGradioto)
-        FrommorningRadioBtn = view.findViewById(R.id.FrommorningRadioBtn)
-        FromafternoonRadioBtn = view.findViewById(R.id.FromafternoonRadioBtn)
-        TomorningRadioBtn = view.findViewById(R.id.TomorningRadioBtn)
-        ToafternoonRadioBtn = view.findViewById(R.id.ToafternoonRadioBtn)
-        RGMorethanOneDayLeaveTypeSelection =
-            view.findViewById(R.id.RGMorethanOneDayLeaveTypeSelection)
-        MorethanOneDayCLRadioBtn = view.findViewById(R.id.MorethanOneDayCLRadioBtn)
-        MorethanOneDayHPLRadioBtn = view.findViewById(R.id.MorethanOneDayHPLRadioBtn)
-        MorethanOneDayELRadioBtn = view.findViewById(R.id.MorethanOneDayELRadioBtn)
-        txtMorethanOneDayNoofleaves = view.findViewById(R.id.txtMorethanOneDayNoofleaves)
-        txtMoreThanOneDayNote = view.findViewById(R.id.txtMoreThanOneDayNote)
-        ETleaveReason = view.findViewById(R.id.ETleaveReason)
-        btnSendRequestMorethan1 = view.findViewById(R.id.btnSendRequestMorethan1)
-
-        RDLeaveRange = view.findViewById(R.id.RDLeaveRange)
-        RBHalfDay = view.findViewById(R.id.RBHalfDay)
-        RBOneDay = view.findViewById(R.id.RBOneDay)
-        RBMorethanOne = view.findViewById(R.id.RBMorethanOne)
-
-        checkOutReasonSpinner = view.findViewById(R.id.CheckOutReasonSpinner)
-        btnCheckIn = view.findViewById(R.id.btnCheckIn)
-        btnCheckOut = view.findViewById(R.id.btnCheckOut)
-        txtCheckInOutStatus = view.findViewById(R.id.txtCheckInOutStatus)
-        txtMyLogs = view.findViewById(R.id.txtMyLogs)
-
+        binding.txtDate.text = getDate()
+        binding.txtDay.text = getDay()
+        binding.txtSession.text = getSession()
+        
         val reasons = listOf("Bank", "Home", "Emergency", "Others")
         checkOutReasonAdapter = ArrayAdapter(
             activity as Context,
             android.R.layout.simple_spinner_dropdown_item,
             reasons
         )
-        checkOutReasonSpinner.adapter = checkOutReasonAdapter
+        binding.CheckOutReasonSpinner.adapter = checkOutReasonAdapter
 
 
-        btnCheckIn.setOnClickListener {
+        binding.btnCheckIn.setOnClickListener {
             updateStatus("Checked In")
             updateLog("---", "Checked In")
         }
-        btnCheckOut.setOnClickListener {
+        binding.btnCheckOut.setOnClickListener {
             updateStatus("Checked Out")
-            updateLog(checkOutReasonSpinner.selectedItem.toString(), "Checked Out")
+            updateLog(binding.CheckOutReasonSpinner.selectedItem.toString(), "Checked Out")
         }
 
         val firstFragment = LogsFragment()
-        txtMyLogs.setOnClickListener {
+        binding.txtMyLogs.setOnClickListener {
             setCurrentFragment(firstFragment)
         }
 
         val sharedPref =
             activity?.getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
         if (sharedPref != null) {
+            Log.d("instituteid", "Not Null")
             instituteid = sharedPref.getString("EmpInstituteId", "Your InsID").toString()
             institutename = sharedPref.getString("EmpInstituteName", "Your InsName").toString()
             empid = sharedPref.getString("EmpID", "Your EmpID").toString()
@@ -261,47 +135,48 @@ class NewRequestFragment : Fragment() {
             currentHPL = sharedPref.getString("HPL", "0")?.toDouble()!!
             currentEL = sharedPref.getString("EL", "0")?.toDouble()!!
 
-            if (txtSession.text.toString() != "No session running" &&
-            txtSession.text.toString() != "Holiday" &&
-            txtSession.text.toString() != "Break"
+            FirebaseMessaging.getInstance().subscribeToTopic(instituteid)
+
+            if (binding.txtSession.text.toString() != "No session running" &&
+            binding.txtSession.text.toString() != "Holiday" &&
+            binding.txtSession.text.toString() != "Break"
             ) {
                 getCurrentStatusFromSP()
                 getCurrentStatus()
             } else {
-                checkOutReasonSpinner.isEnabled = false
-                btnCheckIn.isEnabled = false
-                btnCheckOut.isEnabled = false
-                txtCheckInOutStatus.text = txtSession.text.toString()
+                binding.CheckOutReasonSpinner.isEnabled = false
+                binding.btnCheckIn.isEnabled = false
+                binding.btnCheckOut.isEnabled = false
+                binding.txtCheckInOutStatus.text = binding.txtSession.text.toString()
             }
             updateRemainingLeaves()
             getEmployeeDetails()
         }
-
         getRemainingLeaves()
 
-        RBHalfDay.isChecked = true
-        RLHalfDay.visibility = View.VISIBLE
-        RLOneDay.visibility = View.GONE
-        RLMorethan1.visibility = View.GONE
+        binding.RBHalfDay.isChecked = true
+        binding.RLHalfDay.visibility = View.VISIBLE
+        binding.RLOneDay.visibility = View.GONE
+        binding.RLMorethan1.visibility = View.GONE
 
-        RDLeaveRange.setOnCheckedChangeListener { _, checkedId ->
+        binding.RDLeaveRange.setOnCheckedChangeListener { _, checkedId ->
             when (checkedId) {
                 R.id.RBHalfDay -> {
-                    RLHalfDay.visibility = View.VISIBLE
-                    RLOneDay.visibility = View.GONE
-                    RLMorethan1.visibility = View.GONE
+                    binding.RLHalfDay.visibility = View.VISIBLE
+                    binding.RLOneDay.visibility = View.GONE
+                    binding.RLMorethan1.visibility = View.GONE
                 }
 
                 R.id.RBOneDay -> {
-                    RLHalfDay.visibility = View.GONE
-                    RLOneDay.visibility = View.VISIBLE
-                    RLMorethan1.visibility = View.GONE
+                    binding.RLHalfDay.visibility = View.GONE
+                    binding.RLOneDay.visibility = View.VISIBLE
+                    binding.RLMorethan1.visibility = View.GONE
                 }
 
                 R.id.RBMorethanOne -> {
-                    RLHalfDay.visibility = View.GONE
-                    RLOneDay.visibility = View.GONE
-                    RLMorethan1.visibility = View.VISIBLE
+                    binding.RLHalfDay.visibility = View.GONE
+                    binding.RLOneDay.visibility = View.GONE
+                    binding.RLMorethan1.visibility = View.VISIBLE
                 }
 
                 else -> {
@@ -310,7 +185,7 @@ class NewRequestFragment : Fragment() {
             }
         }
 
-        RGHalfDay.setOnCheckedChangeListener { _, checkedId ->
+        binding.RGHalfDay.setOnCheckedChangeListener { _, checkedId ->
             when (checkedId) {
                 R.id.HalfDaymorningRadioBtn -> {
                     halfdaysession = "morning"
@@ -322,46 +197,46 @@ class NewRequestFragment : Fragment() {
             }
         }
 
-        halfdayleavedate.setOnClickListener {//Half day leave
-            showDatePicker(halfdayleavedate)
+        binding.halfdayleavedate.setOnClickListener {//Half day leave
+            showDatePicker(binding.halfdayleavedate)
         }
-        btnHalfDaydate.setOnClickListener {//Half day leave
-            showDatePicker(halfdayleavedate)
+        binding.btnHalfDaydate.setOnClickListener {//Half day leave
+            showDatePicker(binding.halfdayleavedate)
         }
 
-        RGHalfDayLeaveTypeSelection.setOnCheckedChangeListener { _, checkedId ->
+        binding.RGHalfDayLeaveTypeSelection.setOnCheckedChangeListener { _, checkedId ->
             when (checkedId) {
                 R.id.HalfDayCLRadioBtn -> {
                     // User selected CL
                     halfdayleavetype = "CL"
-                    txtHalfDayNoofleaves.text = daysfinder.HalfDayLeave()[0].toString()
+                    binding.txtHalfDayNoofleaves.text = daysfinder.HalfDayLeave()[0].toString()
                     halfdaynoofleaves = daysfinder.HalfDayLeave()[0].toString()
                     if (currentCL < halfdaynoofleaves.toDouble()) {
-                        txtHalfDayNote.visibility = View.VISIBLE
-                        txtHalfDayNote.text = "You do not have sufficient CL's"
-                    } else txtHalfDayNote.visibility = View.GONE
+                        binding.txtHalfDayNote.visibility = View.VISIBLE
+                        binding.txtHalfDayNote.text = "You do not have sufficient CL's"
+                    } else binding.txtHalfDayNote.visibility = View.GONE
                 }
 
                 R.id.HalfDayHPLRadioBtn -> {
                     // User selected HPL
                     halfdayleavetype = "HPL"
-                    txtHalfDayNoofleaves.text = daysfinder.HalfDayLeave()[1].toString()
+                    binding.txtHalfDayNoofleaves.text = daysfinder.HalfDayLeave()[1].toString()
                     halfdaynoofleaves = daysfinder.HalfDayLeave()[1].toString()
                     if (currentHPL < halfdaynoofleaves.toDouble()) {
-                        txtHalfDayNote.visibility = View.VISIBLE
-                        txtHalfDayNote.text = "You do not have sufficient HPL's"
-                    } else txtHalfDayNote.visibility = View.GONE
+                        binding.txtHalfDayNote.visibility = View.VISIBLE
+                        binding.txtHalfDayNote.text = "You do not have sufficient HPL's"
+                    } else binding.txtHalfDayNote.visibility = View.GONE
                 }
 
                 R.id.HalfDayELRadioBtn -> {
                     // User selected EL
                     halfdayleavetype = "EL"
-                    txtHalfDayNoofleaves.text = daysfinder.HalfDayLeave()[2].toString()
+                    binding.txtHalfDayNoofleaves.text = daysfinder.HalfDayLeave()[2].toString()
                     halfdaynoofleaves = daysfinder.HalfDayLeave()[2].toString()
                     if (currentEL < halfdaynoofleaves.toDouble()) {
-                        txtHalfDayNote.visibility = View.VISIBLE
-                        txtHalfDayNote.text = "You do not have sufficient EL's"
-                    } else txtHalfDayNote.visibility = View.GONE
+                        binding.txtHalfDayNote.visibility = View.VISIBLE
+                        binding.txtHalfDayNote.text = "You do not have sufficient EL's"
+                    } else binding.txtHalfDayNote.visibility = View.GONE
                 }
 
                 else -> {
@@ -370,26 +245,26 @@ class NewRequestFragment : Fragment() {
             }
         }
 
-        btnSendRequestHalfDay.setOnClickListener {
-            if (halfdayleavedate.text.toString() == "") {
+        binding.btnSendRequestHalfDay.setOnClickListener {
+            if (binding.halfdayleavedate.text.toString() == "") {
                 Toast.makeText(
                     activity as Context,
                     "Please select the day of leave",
                     Toast.LENGTH_SHORT
                 ).show()
-            } else if (RGHalfDay.checkedRadioButtonId == -1) {
+            } else if (binding.RGHalfDay.checkedRadioButtonId == -1) {
                 Toast.makeText(activity as Context, "Please select session", Toast.LENGTH_SHORT)
                     .show()
-            } else if (RGHalfDayLeaveTypeSelection.checkedRadioButtonId == -1) {
+            } else if (binding.RGHalfDayLeaveTypeSelection.checkedRadioButtonId == -1) {
                 Toast.makeText(
                     activity as Context,
                     "Please select type of leave",
                     Toast.LENGTH_SHORT
                 ).show()
-            } else if (ETHalfDayleaveReason.text.toString() == "") {
+            } else if (binding.ETHalfDayleaveReason.text.toString() == "") {
                 Toast.makeText(activity as Context, "Please enter the reason", Toast.LENGTH_SHORT)
                     .show()
-            } else if (txtHalfDayNote.visibility == View.VISIBLE) {
+            } else if (binding.txtHalfDayNote.visibility == View.VISIBLE) {
                 Toast.makeText(
                     activity as Context,
                     "You don't have sufficient leaves",
@@ -403,23 +278,23 @@ class NewRequestFragment : Fragment() {
                     Firebase.firestore.collection("Institutions/${instituteid}/Leaves")
                         .document(formattedDateTime)
                 val databaseref2 =
-                    Firebase.firestore.collection("Institutions/$instituteid/Employees/$empid/Leaves")
+                    Firebase.firestore.collection("Institutions/$instituteid/Employees/$empphno/Leaves")
                         .document(formattedDateTime)
                 val leaveRequest = LeaveRequest(
                     formattedDateTime,
-                    empid, instituteid, empname, empdepartment, empdesignation,
-                    halfdayleavedate.text.toString(),
+                    empphno, empid, instituteid, empname, empdepartment, empdesignation,
+                    binding.halfdayleavedate.text.toString(),
                     halfdaysession,
-                    halfdayleavedate.text.toString(),
+                    binding.halfdayleavedate.text.toString(),
                     halfdaysession, halfdayleavetype,
-                    halfdaynoofleaves, ETHalfDayleaveReason.text.toString(), "", "Pending"
+                    halfdaynoofleaves, binding.ETHalfDayleaveReason.text.toString(), "", "Pending"
                 )
 
-                halfdayleavedate.text.clear()
-                ETHalfDayleaveReason.text.clear()
-                RGHalfDayLeaveTypeSelection.clearCheck()
-                RGHalfDay.clearCheck()
-                txtHalfDayNoofleaves.text = "0"
+                binding.halfdayleavedate.text.clear()
+                binding.ETHalfDayleaveReason.text.clear()
+                binding.RGHalfDayLeaveTypeSelection.clearCheck()
+                binding.RGHalfDay.clearCheck()
+                binding.txtHalfDayNoofleaves.text = "0"
                 halfdaysession = ""
                 halfdayleavetype = ""
                 halfdaynoofleaves = ""
@@ -428,46 +303,47 @@ class NewRequestFragment : Fragment() {
             }
         }
 
-        onedayleavedate.setOnClickListener {// One day leave
-            showDatePicker(onedayleavedate)
-        }
-        btnSelectonedayleavedate.setOnClickListener {// One day leave
-            showDatePicker(onedayleavedate)
+        binding.onedayleavedate.setOnClickListener {// One day leave
+            showDatePicker(binding.onedayleavedate)
         }
 
-        RGOneDayLeaveTypeSelection.setOnCheckedChangeListener { _, checkedId ->
+        binding.btnSelectonedayleavedate.setOnClickListener {//Half day leave
+            showDatePicker(binding.onedayleavedate)
+        }
+
+        binding.RGOneDayLeaveTypeSelection.setOnCheckedChangeListener { _, checkedId ->
             when (checkedId) {
                 R.id.OneDayCLRadioBtn -> {
                     // User selected CL
                     onedayleavetype = "CL"
-                    txtOneDayNoofleaves.text = daysfinder.FullDayLeave()[0].toString()
+                    binding.txtOneDayNoofleaves.text = daysfinder.FullDayLeave()[0].toString()
                     onedaynoofleaves = daysfinder.FullDayLeave()[0].toString()
                     if (currentCL < onedaynoofleaves.toDouble()) {
-                        txtOneDayNote.visibility = View.VISIBLE
-                        txtOneDayNote.text = "You do not have sufficient CL's"
-                    } else txtOneDayNote.visibility = View.GONE
+                        binding.txtOneDayNote.visibility = View.VISIBLE
+                        binding.txtOneDayNote.text = "You do not have sufficient CL's"
+                    } else binding.txtOneDayNote.visibility = View.GONE
                 }
 
                 R.id.OneDayHPLRadioBtn -> {
                     // User selected HPL
                     onedayleavetype = "HPL"
-                    txtOneDayNoofleaves.text = daysfinder.FullDayLeave()[1].toString()
+                    binding.txtOneDayNoofleaves.text = daysfinder.FullDayLeave()[1].toString()
                     onedaynoofleaves = daysfinder.FullDayLeave()[1].toString()
                     if (currentHPL < onedaynoofleaves.toDouble()) {
-                        txtOneDayNote.visibility = View.VISIBLE
-                        txtOneDayNote.text = "You do not have sufficient HPL's"
-                    } else txtOneDayNote.visibility = View.GONE
+                        binding.txtOneDayNote.visibility = View.VISIBLE
+                        binding.txtOneDayNote.text = "You do not have sufficient HPL's"
+                    } else binding.txtOneDayNote.visibility = View.GONE
                 }
 
                 R.id.OneDayELRadioBtn -> {
                     // User selected EL
                     onedayleavetype = "EL"
-                    txtOneDayNoofleaves.text = daysfinder.FullDayLeave()[2].toString()
+                    binding.txtOneDayNoofleaves.text = daysfinder.FullDayLeave()[2].toString()
                     onedaynoofleaves = daysfinder.FullDayLeave()[2].toString()
                     if (currentEL < onedaynoofleaves.toDouble()) {
-                        txtOneDayNote.visibility = View.VISIBLE
-                        txtOneDayNote.text = "You do not have sufficient EL's"
-                    } else txtOneDayNote.visibility = View.GONE
+                        binding.txtOneDayNote.visibility = View.VISIBLE
+                        binding.txtOneDayNote.text = "You do not have sufficient EL's"
+                    } else binding.txtOneDayNote.visibility = View.GONE
                 }
 
                 else -> {
@@ -476,23 +352,23 @@ class NewRequestFragment : Fragment() {
             }
         }
 
-        btnSendRequestOneDay.setOnClickListener {
-            if (onedayleavedate.text.toString() == "") {
+        binding.btnSendRequestOneDay.setOnClickListener {
+            if (binding.onedayleavedate.text.toString() == "") {
                 Toast.makeText(
                     activity as Context,
                     "Please select the day of leave",
                     Toast.LENGTH_SHORT
                 ).show()
-            } else if (RGOneDayLeaveTypeSelection.checkedRadioButtonId == -1) {
+            } else if (binding.RGOneDayLeaveTypeSelection.checkedRadioButtonId == -1) {
                 Toast.makeText(
                     activity as Context,
                     "Please select type of leave",
                     Toast.LENGTH_SHORT
                 ).show()
-            } else if (ETonedayleaveReason.text.toString() == "") {
+            } else if (binding.ETonedayleaveReason.text.toString() == "") {
                 Toast.makeText(activity as Context, "Please enter the reason", Toast.LENGTH_SHORT)
                     .show()
-            } else if (txtOneDayNote.visibility == View.VISIBLE) {
+            } else if (binding.txtOneDayNote.visibility == View.VISIBLE) {
                 Toast.makeText(
                     activity as Context,
                     "You don't have sufficient leaves",
@@ -506,21 +382,21 @@ class NewRequestFragment : Fragment() {
                     Firebase.firestore.collection("Institutions/${instituteid}/Leaves")
                         .document(formattedDateTime)
                 val databaseref2 =
-                    Firebase.firestore.collection("Institutions/$instituteid/Employees/$empid/Leaves")
+                    Firebase.firestore.collection("Institutions/$instituteid/Employees/$empphno/Leaves")
                         .document(formattedDateTime)
                 val leaveRequest = LeaveRequest(
                     formattedDateTime,
-                    empid, instituteid, empname, empdepartment, empdesignation,
-                    onedayleavedate.text.toString(),
+                    empphno, empid, instituteid, empname, empdepartment, empdesignation,
+                    binding.onedayleavedate.text.toString(),
                     "morning",
-                    onedayleavedate.text.toString(),
+                    binding.onedayleavedate.text.toString(),
                     "afternoon", onedayleavetype,
-                    onedaynoofleaves, ETonedayleaveReason.text.toString(), "", "Pending"
+                    onedaynoofleaves, binding.ETonedayleaveReason.text.toString(), "", "Pending"
                 )
 
-                onedayleavedate.text.clear()
-                ETonedayleaveReason.text.clear()
-                RGOneDayLeaveTypeSelection.clearCheck()
+                binding.onedayleavedate.text.clear()
+                binding.ETonedayleaveReason.text.clear()
+                binding.RGOneDayLeaveTypeSelection.clearCheck()
                 onedayleavetype = ""
                 onedaynoofleaves = ""
                 sendleaverequest(leaveRequest, databaseref1)
@@ -528,31 +404,31 @@ class NewRequestFragment : Fragment() {
             }
         }
 
-        leavefromdate.setOnClickListener {// More than 1 day leave
-            showDatePicker(leavefromdate)
+        binding.leavefromdate.setOnClickListener {// More than 1 day leave
+            showDatePicker(binding.leavefromdate)
         }
-        leavetodate.setOnClickListener {// More than 1 day leave
-            showDatePicker(leavetodate)
+        binding.leavetodate.setOnClickListener {// More than 1 day leave
+            showDatePicker(binding.leavetodate)
         }
-        btnSelectfromdate.setOnClickListener {// More than 1 day leave
-            showDatePicker(leavefromdate)
+        binding.btnSelectfromdate.setOnClickListener {// More than 1 day leave
+            showDatePicker(binding.leavefromdate)
         }
-        btnSelecttodate.setOnClickListener {
-            showDatePicker(leavetodate)
+        binding.btnSelecttodate.setOnClickListener {
+            showDatePicker(binding.leavetodate)
         }
 
-        RGradiofrom.setOnCheckedChangeListener { _, checkedId ->
+        binding.RGradiofrom.setOnCheckedChangeListener { _, checkedId ->
             when (checkedId) {
                 R.id.FrommorningRadioBtn -> {
                     // User selected morning session
                     MorethanOnedayFromselected = "morning"
-                    updateNoOfLeaves(view)
+                    updateNoOfLeaves()
                 }
 
                 R.id.FromafternoonRadioBtn -> {
                     // User selected afternoon session
                     MorethanOnedayFromselected = "afternoon"
-                    updateNoOfLeaves(view)
+                    updateNoOfLeaves()
                 }
 
                 else -> {
@@ -561,18 +437,18 @@ class NewRequestFragment : Fragment() {
             }
         }
 
-        RGradioto.setOnCheckedChangeListener { _, checkedId ->
+        binding.RGradioto.setOnCheckedChangeListener { _, checkedId ->
             when (checkedId) {
                 R.id.TomorningRadioBtn -> {
                     // User selected morning session
                     MorethanOnedayToselected = "morning"
-                    updateNoOfLeaves(view)
+                    updateNoOfLeaves()
                 }
 
                 R.id.ToafternoonRadioBtn -> {
                     // User selected afternoon session
                     MorethanOnedayToselected = "afternoon"
-                    updateNoOfLeaves(view)
+                    updateNoOfLeaves()
                 }
 
                 else -> {
@@ -581,54 +457,54 @@ class NewRequestFragment : Fragment() {
             }
         }
 
-        RGMorethanOneDayLeaveTypeSelection.setOnCheckedChangeListener { _, checkedId ->
+        binding.RGMorethanOneDayLeaveTypeSelection.setOnCheckedChangeListener { _, checkedId ->
             when (checkedId) {
                 R.id.MorethanOneDayCLRadioBtn -> {
                     // User selected CL
                     morethan1dayleavetype = "CL"
                     morethan1daynoofleaves = daysfinder.MorethanoneLeave(
-                        leavefromdate.text.toString(),
+                        binding.leavefromdate.text.toString(),
                         MorethanOnedayFromselected,
-                        leavetodate.text.toString(),
+                        binding.leavetodate.text.toString(),
                         MorethanOnedayToselected
                     )[0].toString()
-                    txtMorethanOneDayNoofleaves.text = morethan1daynoofleaves
+                    binding.txtMorethanOneDayNoofleaves.text = morethan1daynoofleaves
                     if (currentCL < morethan1daynoofleaves.toDouble()) {
-                        txtMoreThanOneDayNote.visibility = View.VISIBLE
-                        txtMoreThanOneDayNote.text = "You do not have sufficient CL's"
-                    } else txtMoreThanOneDayNote.visibility = View.GONE
+                        binding.txtMoreThanOneDayNote.visibility = View.VISIBLE
+                        binding.txtMoreThanOneDayNote.text = "You do not have sufficient CL's"
+                    } else binding.txtMoreThanOneDayNote.visibility = View.GONE
                 }
 
-                R.id.MorethanOneDayHPLRadioBtn -> {
+                R.id.MorethanOneDayCLRadioBtn -> {
                     // User selected HPL
                     morethan1dayleavetype = "HPL"
                     morethan1daynoofleaves = daysfinder.MorethanoneLeave(
-                        leavefromdate.text.toString(),
+                        binding.leavefromdate.text.toString(),
                         MorethanOnedayFromselected,
-                        leavetodate.text.toString(),
+                        binding.leavetodate.text.toString(),
                         MorethanOnedayToselected
                     )[1].toString()
-                    txtMorethanOneDayNoofleaves.text = morethan1daynoofleaves
+                    binding.txtMorethanOneDayNoofleaves.text = morethan1daynoofleaves
                     if (currentHPL < morethan1daynoofleaves.toDouble()) {
-                        txtMoreThanOneDayNote.visibility = View.VISIBLE
-                        txtMoreThanOneDayNote.text = "You do not have sufficient HPL's"
-                    } else txtMoreThanOneDayNote.visibility = View.GONE
+                        binding.txtMoreThanOneDayNote.visibility = View.VISIBLE
+                        binding.txtMoreThanOneDayNote.text = "You do not have sufficient HPL's"
+                    } else binding.txtMoreThanOneDayNote.visibility = View.GONE
                 }
 
                 R.id.MorethanOneDayELRadioBtn -> {
                     // User selected EL
                     morethan1dayleavetype = "EL"
                     morethan1daynoofleaves = daysfinder.MorethanoneLeave(
-                        leavefromdate.text.toString(),
+                        binding.leavefromdate.text.toString(),
                         MorethanOnedayFromselected,
-                        leavetodate.text.toString(),
+                        binding.leavetodate.text.toString(),
                         MorethanOnedayToselected
                     )[2].toString()
-                    txtMorethanOneDayNoofleaves.text = morethan1daynoofleaves
+                    binding.txtMorethanOneDayNoofleaves.text = morethan1daynoofleaves
                     if (currentEL < morethan1daynoofleaves.toDouble()) {
-                        txtMoreThanOneDayNote.visibility = View.VISIBLE
-                        txtMoreThanOneDayNote.text = "You do not have sufficient EL's"
-                    } else txtMoreThanOneDayNote.visibility = View.GONE
+                        binding.txtMoreThanOneDayNote.visibility = View.VISIBLE
+                        binding.txtMoreThanOneDayNote.text = "You do not have sufficient EL's"
+                    } else binding.txtMoreThanOneDayNote.visibility = View.GONE
                 }
 
                 else -> {
@@ -637,43 +513,43 @@ class NewRequestFragment : Fragment() {
             }
         }
 
-        btnSendRequestMorethan1.setOnClickListener {
-            if (leavefromdate.text.toString() == "") {
+        binding.btnSendRequestMorethan1.setOnClickListener {
+            if (binding.leavefromdate.text.toString() == "") {
                 Toast.makeText(
                     activity as Context,
                     "Please select the first day of leave",
                     Toast.LENGTH_SHORT
                 ).show()
-            } else if (RGradiofrom.checkedRadioButtonId == -1) {
+            } else if (binding.RGradiofrom.checkedRadioButtonId == -1) {
                 Toast.makeText(
                     activity as Context,
                     "Please select session of From date",
                     Toast.LENGTH_SHORT
                 ).show()
-            } else if (leavetodate.text.toString() == "") {
+            } else if (binding.leavetodate.text.toString() == "") {
                 Toast.makeText(
                     activity as Context,
                     "Please select the last day of leave",
                     Toast.LENGTH_SHORT
                 ).show()
-            } else if (RGradioto.checkedRadioButtonId == -1) {
+            } else if (binding.RGradioto.checkedRadioButtonId == -1) {
                 Toast.makeText(
                     activity as Context,
                     "Please select session of To date",
                     Toast.LENGTH_SHORT
                 ).show()
-            } else if (RGMorethanOneDayLeaveTypeSelection.checkedRadioButtonId == -1) {
+            } else if (binding.RGMorethanOneDayLeaveTypeSelection.checkedRadioButtonId == -1) {
                 Toast.makeText(
                     activity as Context,
                     "Please select type of leave",
                     Toast.LENGTH_SHORT
                 ).show()
-            } else if (ETleaveReason.text.toString() == "") {
+            } else if (binding.ETleaveReason.text.toString() == "") {
                 Toast.makeText(activity as Context, "Please enter the reason", Toast.LENGTH_SHORT)
                     .show()
             } else if (daysfinder.isToDateBeforeFromDate(
-                    leavefromdate.text.toString(),
-                    leavetodate.text.toString()
+                    binding.leavefromdate.text.toString(),
+                    binding.leavetodate.text.toString()
                 )
             ) {
                 Toast.makeText(
@@ -681,7 +557,7 @@ class NewRequestFragment : Fragment() {
                     "Invalid 'From' and 'To' date",
                     Toast.LENGTH_SHORT
                 ).show()
-            } else if (txtMoreThanOneDayNote.visibility == View.VISIBLE) {
+            } else if (binding.txtMoreThanOneDayNote.visibility == View.VISIBLE) {
                 Toast.makeText(
                     activity as Context,
                     "You don't have sufficient leaves",
@@ -696,24 +572,24 @@ class NewRequestFragment : Fragment() {
                     Firebase.firestore.collection("Institutions/${instituteid}/Leaves")
                         .document(formattedDateTime)
                 val databaseref2 =
-                    Firebase.firestore.collection("Institutions/$instituteid/Employees/$empid/Leaves")
+                    Firebase.firestore.collection("Institutions/$instituteid/Employees/$empphno/Leaves")
                         .document(formattedDateTime)
                 val leaveRequest = LeaveRequest(
                     formattedDateTime,
-                    empid, instituteid, empname, empdepartment, empdesignation,
-                    leavefromdate.text.toString(),
+                    empphno, empid, instituteid, empname, empdepartment, empdesignation,
+                    binding.leavefromdate.text.toString(),
                     MorethanOnedayFromselected,
-                    leavetodate.text.toString(),
+                    binding.leavetodate.text.toString(),
                     MorethanOnedayToselected, morethan1dayleavetype,
-                    morethan1daynoofleaves, ETleaveReason.text.toString(), "", "Pending"
+                    morethan1daynoofleaves, binding.ETleaveReason.text.toString(), "", "Pending"
                 )
 
-                RGradiofrom.clearCheck()
-                RGradioto.clearCheck()
-                RGMorethanOneDayLeaveTypeSelection.clearCheck()
-                leavefromdate.text.clear()
-                leavetodate.text.clear()
-                ETleaveReason.text.clear()
+                binding.RGradiofrom.clearCheck()
+                binding.RGradioto.clearCheck()
+                binding.RGMorethanOneDayLeaveTypeSelection.clearCheck()
+                binding.leavefromdate.text.clear()
+                binding.leavetodate.text.clear()
+                binding.ETleaveReason.text.clear()
                 MorethanOnedayFromselected = ""
                 MorethanOnedayToselected = ""
                 morethan1dayleavetype = ""
@@ -728,17 +604,17 @@ class NewRequestFragment : Fragment() {
             override fun run() {
                 val currentDate = Date()
                 val dateString = dateFormat.format(currentDate)
-                txtTime.text = dateString
+                binding.txtTime.text = dateString
                 handler.postDelayed(this, 1000)
             }
         })
-        return view
+        return binding.root
     }
 
     private fun sendleaverequest(leaveRequest: LeaveRequest, databaseref: DocumentReference) =
         CoroutineScope(Dispatchers.IO).launch {
             withContext(Dispatchers.Main) {
-                progressbarofNewRequest.visibility = View.VISIBLE
+                binding.progressbarofNewRequest.visibility = View.VISIBLE
             }
             try {
                 databaseref.set(leaveRequest).await()
@@ -748,12 +624,12 @@ class NewRequestFragment : Fragment() {
                     val title = "MLR"
                     val message = "$empname has requested for a leave"
                     sendEmployerNotification(title, message)
-                    progressbarofNewRequest.visibility = View.GONE
+                    binding.progressbarofNewRequest.visibility = View.GONE
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(activity as Context, e.message, Toast.LENGTH_SHORT).show()
-                    progressbarofNewRequest.visibility = View.GONE
+                    binding.progressbarofNewRequest.visibility = View.GONE
                 }
             }
         }
@@ -761,7 +637,7 @@ class NewRequestFragment : Fragment() {
     private fun updateLog(reason: String, status: String) =
         CoroutineScope(Dispatchers.IO).launch {
             withContext(Dispatchers.Main) {
-                progressbarofNewRequest.visibility = View.VISIBLE
+                binding.progressbarofNewRequest.visibility = View.VISIBLE
             }
             try {
                 val folderName = getDate()
@@ -771,11 +647,11 @@ class NewRequestFragment : Fragment() {
                 val map = mutableMapOf<String, Any>()
                 map["Date"] = folderName
                 val databaseRef1 =
-                    Firebase.firestore.collection("Institutions/${instituteid}/Employees/${empid}/Logs")
+                    Firebase.firestore.collection("Institutions/${instituteid}/Employees/${empphno}/Logs")
                         .document(folderName)
                 databaseRef1.set(map, SetOptions.merge()).await()
                 val databaseRef2 =
-                    Firebase.firestore.collection("Institutions/${instituteid}/Employees/${empid}/Logs/${folderName}/CheckInCheckOut")
+                    Firebase.firestore.collection("Institutions/${instituteid}/Employees/${empphno}/Logs/${folderName}/CheckInCheckOut")
                         .document(formattedDateTime)
                 val newLog = CheckInOutLog(
                     formattedDateTime.toString(),
@@ -790,91 +666,117 @@ class NewRequestFragment : Fragment() {
                     else "$empname has checked out for $reason"
 
                     sendEmployerNotification(title, message)
-                    progressbarofNewRequest.visibility = View.GONE
+                    binding.progressbarofNewRequest.visibility = View.GONE
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(activity as Context, e.message, Toast.LENGTH_SHORT).show()
-                    progressbarofNewRequest.visibility = View.GONE
+                    binding.progressbarofNewRequest.visibility = View.GONE
                 }
             }
         }
 
     private fun getRemainingLeaves() = CoroutineScope(Dispatchers.IO).launch {
-        val databaseref =
+        val databaseRef =
             database.collection("Institutions").document(instituteid).collection("Employees")
-                .document(empid)
-        val querySnapshot = databaseref.get().await()
-        val employee = querySnapshot.toObject<Employee>()
-        if (employee != null) {
-            currentCL = employee.EmpCL!!
-            currentHPL = employee.EmpHPL!!
-            currentEL = employee.EmpEL!!
-        }
-        withContext(Dispatchers.Main) {
-            updateRemainingLeaves()
+                .document(empphno)
+        try{
+            val querySnapshot = databaseRef.get().await()
+            val employee = querySnapshot.toObject<Employee>()
+            if (employee != null) {
+                currentCL = employee.EmpCL!!
+                currentHPL = employee.EmpHPL!!
+                currentEL = employee.EmpEL!!
+            }
+            withContext(Dispatchers.Main) {
+                updateRemainingLeaves()
+            }
+        }catch (e: Exception){
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    activity as Context,
+                    e.message + "Get Remaining leaves",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         }
     }
 
     @SuppressLint("SetTextI18n")
     private fun getCurrentStatus() = CoroutineScope(Dispatchers.IO).launch {
-        val doc = database.collection("Institutions")
-            .document(instituteid).collection("Employees")
-            .document(empid).get().await()
-        val status = doc.get("status").toString()
-        withContext(Dispatchers.Main) {
-            if (status == "Checked Out") {
-                btnCheckOut.isEnabled = false
-                checkOutReasonSpinner.isEnabled = false
-                btnCheckIn.isEnabled = true
-                //txtCheckInOutStatus.setTextColor(android.graphics.Color.parseColor("#F44336"))
-            } else {
-                btnCheckOut.isEnabled = true
-                checkOutReasonSpinner.isEnabled = true
-                btnCheckIn.isEnabled = false
-                //txtCheckInOutStatus.setTextColor(android.graphics.Color.parseColor("#F44336"))
+        try{
+            val doc = database.collection("Institutions")
+                .document(instituteid).collection("Employees")
+                .document(empphno).get().await()
+            val status = doc.get("status").toString()
+            withContext(Dispatchers.Main) {
+                if (status == "Checked Out") {
+                    binding.btnCheckOut.isEnabled = false
+                    binding.CheckOutReasonSpinner.isEnabled = false
+                    binding.btnCheckIn.isEnabled = true
+                    //binding.txtCheckInOutStatus.setTextColor(android.graphics.Color.parseColor("#F44336"))
+                } else {
+                    binding.btnCheckOut.isEnabled = true
+                    binding.CheckOutReasonSpinner.isEnabled = true
+                    binding.btnCheckIn.isEnabled = false
+                    //binding.txtCheckInOutStatus.setTextColor(android.graphics.Color.parseColor("#F44336"))
+                }
+                binding.txtCheckInOutStatus.text = "You have $status"
             }
-            txtCheckInOutStatus.text = "You have $status"
+        }catch (e: Exception){
+            Toast.makeText(
+                activity as Context,
+                e.message +"Get current status",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
     private fun getCurrentStatusFromSP(){
         if (empStatus == "Checked Out") {
-            btnCheckOut.isEnabled = false
-            checkOutReasonSpinner.isEnabled = false
-            btnCheckIn.isEnabled = true
-            //txtCheckInOutStatus.setTextColor(android.graphics.Color.parseColor("#F44336"))
+            binding.btnCheckOut.isEnabled = false
+            binding.CheckOutReasonSpinner.isEnabled = false
+            binding.btnCheckIn.isEnabled = true
+            //binding.txtCheckInOutStatus.setTextColor(android.graphics.Color.parseColor("#F44336"))
         } else {
-            btnCheckOut.isEnabled = true
-            checkOutReasonSpinner.isEnabled = true
-            btnCheckIn.isEnabled = false
-            //txtCheckInOutStatus.setTextColor(android.graphics.Color.parseColor("#F44336"))
+            binding.btnCheckOut.isEnabled = true
+            binding.CheckOutReasonSpinner.isEnabled = true
+            binding.btnCheckIn.isEnabled = false
+            //binding.txtCheckInOutStatus.setTextColor(android.graphics.Color.parseColor("#F44336"))
         }
-        txtCheckInOutStatus.text = "You have $empStatus"
+        binding.txtCheckInOutStatus.text = "You have $empStatus"
     }
 
     private fun updateStatus(status: String) = CoroutineScope(Dispatchers.IO).launch{
         val map = mutableMapOf<String, Any>()
         map["status"] = status
         val databaseRef = database.collection("Institutions").document(instituteid).collection("Employees")
-            .document(empid)
-        databaseRef.set(map, SetOptions.merge()).await()
-        withContext(Dispatchers.Main){
-            Toast.makeText(activity as Context, status, Toast.LENGTH_SHORT).show()
-            val sharedPref = requireActivity().getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
-            with (sharedPref.edit()) {
-                putString("status", status)
-                apply()
+            .document(empphno)
+        try{
+            databaseRef.set(map, SetOptions.merge()).await()
+            withContext(Dispatchers.Main){
+                Toast.makeText(activity as Context, status, Toast.LENGTH_SHORT).show()
+                val sharedPref = requireActivity().getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
+                with (sharedPref.edit()) {
+                    putString("status", status)
+                    apply()
+                }
             }
+            getCurrentStatus()
+        }catch (e: Exception){
+            Toast.makeText(
+                activity as Context,
+                e.message,
+                Toast.LENGTH_SHORT
+            ).show()
         }
-        getCurrentStatus()
     }
 
     private fun updateRemainingLeaves() = CoroutineScope(Dispatchers.IO).launch {
         try{
-            txtCLcount.text = currentCL.toString()
-            txtHPLcount.text = currentHPL.toString()
-            txtELcount.text = currentEL.toString()
+            binding.txtCLcount.text = currentCL.toString()
+            binding.txtHPLcount.text = currentHPL.toString()
+            binding.txtELcount.text = currentEL.toString()
 
             val sharedPref =
                 activity?.getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
@@ -961,38 +863,39 @@ class NewRequestFragment : Fragment() {
         datePickerDialog.show()
     }
 
-    private fun updateNoOfLeaves(view: View) {
-        val typeCheckedId = RGMorethanOneDayLeaveTypeSelection.checkedRadioButtonId
+    private fun updateNoOfLeaves() {
+        val typeCheckedId = binding.RGMorethanOneDayLeaveTypeSelection.checkedRadioButtonId
         if (typeCheckedId != -1) {
-            val checkedRadioButton: RadioButton = view.findViewById(typeCheckedId)
+            val checkedRadioButton: RadioButton = binding.root.findViewById(typeCheckedId)
             val checkedItemText: String = checkedRadioButton.text.toString()
 
             if (checkedItemText == "CL") {
-                txtMorethanOneDayNoofleaves.text = daysfinder.MorethanoneLeave(
-                    leavefromdate.text.toString(),
+                binding.txtMorethanOneDayNoofleaves.text = daysfinder.MorethanoneLeave(
+                    binding.leavefromdate.text.toString(),
                     MorethanOnedayFromselected,
-                    leavetodate.text.toString(),
+                    binding.leavetodate.text.toString(),
                     MorethanOnedayToselected
                 )[0].toString()
             }
             if (checkedItemText == "HPL") {
-                txtMorethanOneDayNoofleaves.text = daysfinder.MorethanoneLeave(
-                    leavefromdate.text.toString(),
+                binding.txtMorethanOneDayNoofleaves.text = daysfinder.MorethanoneLeave(
+                    binding.leavefromdate.text.toString(),
                     MorethanOnedayFromselected,
-                    leavetodate.text.toString(),
+                    binding.leavetodate.text.toString(),
                     MorethanOnedayToselected
                 )[1].toString()
             }
             if (checkedItemText == "EL") {
-                txtMorethanOneDayNoofleaves.text = daysfinder.MorethanoneLeave(
-                    leavefromdate.text.toString(),
+                binding.txtMorethanOneDayNoofleaves.text = daysfinder.MorethanoneLeave(
+                    binding.leavefromdate.text.toString(),
                     MorethanOnedayFromselected,
-                    leavetodate.text.toString(),
+                    binding.leavetodate.text.toString(),
                     MorethanOnedayToselected
                 )[2].toString()
             }
         }
     }
+
 
     private fun sendEmployerNotification(title:String, message:String) =
         CoroutineScope(Dispatchers.IO).launch {
@@ -1047,52 +950,46 @@ class NewRequestFragment : Fragment() {
         startActivity(intent)
     }
 
-    private fun getfcmtoken() = CoroutineScope(Dispatchers.IO).launch{
-        FirebaseMessaging.getInstance().token   //Only to be added in admins code
-            .addOnCompleteListener { task ->
-                if (!task.isSuccessful) {
-                    Log.w("FCM", "Fetching FCM registration token failed", task.exception)
-                    return@addOnCompleteListener
-                }
-                // Get the FCM token
-                val fcmToken = task.result
-                Log.d("FCM", "FCM registration token: $fcmToken")
-                val database = FirebaseFirestore.getInstance()
-                val sharedPref = activity?.getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
-                val instituteId = sharedPref?.getString("EmpInstituteId", "")
-                val employeeId = sharedPref?.getString("EmpID", "")
-                if (instituteId != null && employeeId != null) {
-                    val map = mutableMapOf<String, Any>()
-                    map["fcmToken"] = fcmToken
-                    val databaseref = database.collection("Institutions")
-                        .document(instituteId)
-                        .collection("Employees")
-                        .document(employeeId)
-                    databaseref.set(map, SetOptions.merge())
-                        .addOnSuccessListener {
-                            Log.d(ContentValues.TAG, "FCM token added to database successfully")
-                        }
-                        .addOnFailureListener { e ->
-                            Log.e(ContentValues.TAG, "FCM token could not be added to database", e)
-                        }
-                } else {
-                    Log.d(ContentValues.TAG, "No institute ID/employee ID found")
-                }
+    private fun getFcmToken() = CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val fcmToken = FirebaseMessaging.getInstance().token.await()
+
+            // Continue only if the shared preferences are available
+            val sharedPref = activity?.getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
+            val instituteId = sharedPref?.getString("EmpInstituteId", "")
+            val employeePhno = sharedPref?.getString("PhoneNumber", "")
+            if (instituteId.isNullOrEmpty() || employeePhno.isNullOrEmpty()) {
+                Log.d(ContentValues.TAG, "No institute ID/employee ID found")
+                return@launch
             }
+
+            val map = mutableMapOf<String, Any>("fcmToken" to fcmToken)
+            val databaseRef = FirebaseFirestore.getInstance().collection("Institutions")
+                .document(instituteId)
+                .collection("Employees")
+                .document(employeePhno)
+
+            databaseRef.set(map, SetOptions.merge()).await()
+        } catch (e: Exception) {
+            Log.d(ContentValues.TAG, "Error fetching FCM token or updating Firestore: ${e.message}")
+        }
     }
 
     private fun getEmployeeDetails()= CoroutineScope(Dispatchers.IO).launch{
-        val dbref = database.collection("Institutions").document(instituteid).collection("Employees")
-        val querySnapshot = dbref.whereEqualTo("empId", empid).get().await()
-        if (querySnapshot.isEmpty){
-            withContext(Dispatchers.Main){
-                Toast.makeText(activity as Context, "Your account has been deleted", Toast.LENGTH_LONG).show()
-                logout()
-            }
-        }else{
-            for (document in querySnapshot) {
-                Log.d("querys", querySnapshot.toString())
-                val employee = document.toObject<Employee>()
+        val db = FirebaseFirestore.getInstance()
+        try {
+            val doc = db.collection("Institutions").document(instituteid)
+                .collection("Employees").document(empphno).get().await()
+            if(!doc.exists()){
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        activity as Context,
+                        "Your account has been deleted",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }else{
+                val employee = doc.toObject<Employee>()!!
                 if (employee.EmpPhoneNo != empphno){
                     withContext(Dispatchers.Main){
                         Toast.makeText(activity as Context, "Your number has been changed by Employer", Toast.LENGTH_LONG).show()
@@ -1100,7 +997,10 @@ class NewRequestFragment : Fragment() {
                     }
                 }
                 else{
-                    getfcmtoken()
+                    val fcmStatus = doc.get("fcmToken")
+                    if (fcmStatus == null){
+                        getFcmToken()
+                    }
                     val sharedPref = activity?.getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
                     if (sharedPref != null) {
                         with (sharedPref.edit()) {
@@ -1124,6 +1024,14 @@ class NewRequestFragment : Fragment() {
                         }
                     }
                 }
+            }
+        }catch (e: Exception){
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    activity as Context,
+                    e.message + "Get employee details",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }

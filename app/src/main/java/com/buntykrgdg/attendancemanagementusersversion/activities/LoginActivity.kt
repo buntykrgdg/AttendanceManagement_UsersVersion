@@ -4,14 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.Employee
-import com.buntykrgdg.attendancemanagementusersversion.R
-import com.google.android.material.textfield.TextInputEditText
+import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.User
+import com.buntykrgdg.attendancemanagementusersversion.databinding.ActivityLoginBinding
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.PhoneAuthCredential
@@ -19,7 +15,6 @@ import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObject
-import com.hbb20.CountryCodePicker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -28,42 +23,35 @@ import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
 class LoginActivity : AppCompatActivity() {
-    private lateinit var edTxtGetPhoneNumber: EditText
-    private lateinit var btnSendOtpButton: Button
-    private lateinit var countyrycodepicker: CountryCodePicker
+    private lateinit var binding: ActivityLoginBinding
     private lateinit var countrycode: String
     private lateinit var phonenumber: String
+    private lateinit var number: String
     private lateinit var firebaseAuth: FirebaseAuth
-    private var database = FirebaseFirestore.getInstance()
-    private lateinit var progressbarofmain: ProgressBar
     private lateinit var callBacks: PhoneAuthProvider.OnVerificationStateChangedCallbacks
     private lateinit var codesent: String
-    private lateinit var companyID: TextInputEditText
-    private lateinit var employeedetails: Employee
     private lateinit var companyid: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login)
-        countyrycodepicker = findViewById(R.id.countyrycodepicker)
-        btnSendOtpButton = findViewById(R.id.btnSendOtpButton)
-        edTxtGetPhoneNumber = findViewById(R.id.edtxtGetphonenumber)
-        progressbarofmain = findViewById(R.id.progressbarofmain)
-        companyID = findViewById(R.id.CompanyID)
+        binding = ActivityLoginBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         firebaseAuth = FirebaseAuth.getInstance()
-        countrycode = countyrycodepicker.selectedCountryCodeWithPlus
+        countrycode = binding.countrycodepicker.selectedCountryCodeWithPlus
 
-        countyrycodepicker.setOnCountryChangeListener {
-            countrycode = countyrycodepicker.selectedCountryCodeWithPlus
+        binding.countrycodepicker.setOnCountryChangeListener {
+            countrycode = binding.countrycodepicker.selectedCountryCodeWithPlus
         }
 
-        btnSendOtpButton.setOnClickListener {
-            companyid = companyID.text.toString()
+        //initAppIntegrity()
+
+        binding.btnSendOtpButton.setOnClickListener {
+            companyid = binding.CompanyID.text.toString()
             if(companyid == ""){
                 Toast.makeText(applicationContext, "Please enter Company ID", Toast.LENGTH_SHORT).show()
             }
             else{
-                val number: String = edTxtGetPhoneNumber.text.toString()
+                number = binding.edtxtGetphonenumber.text.toString()
                 if (number.isEmpty()) {
                     Toast.makeText(applicationContext, "Please enter your number", Toast.LENGTH_SHORT)
                         .show()
@@ -74,7 +62,7 @@ class LoginActivity : AppCompatActivity() {
                         Toast.LENGTH_SHORT
                     ).show()
                 } else {
-                    progressbarofmain.visibility = View.VISIBLE
+                    binding.progressbarofmain.visibility = View.VISIBLE
                     checkIfRegistered(companyid,number)
                 }
             }
@@ -83,66 +71,99 @@ class LoginActivity : AppCompatActivity() {
         callBacks = object: PhoneAuthProvider.OnVerificationStateChangedCallbacks(){
             override fun onVerificationCompleted(p0: PhoneAuthCredential) {
                 Toast.makeText(applicationContext, "Verification Completed", Toast.LENGTH_SHORT).show()
+                binding.progressbarofmain.visibility = View.INVISIBLE
             }
 
             override fun onVerificationFailed(p0: FirebaseException) {
                 Toast.makeText(applicationContext, "VerificationFailed", Toast.LENGTH_SHORT).show()
+                binding.progressbarofmain.visibility = View.INVISIBLE
             }
 
             override fun onCodeSent(p0: String, p1: PhoneAuthProvider.ForceResendingToken) {
                 super.onCodeSent(p0, p1)
                 Toast.makeText(applicationContext, "Code Sent", Toast.LENGTH_SHORT).show()
-                progressbarofmain.visibility = View.INVISIBLE
+                binding.progressbarofmain.visibility = View.INVISIBLE
                 codesent = p0
                 val intent = Intent(this@LoginActivity, FirebaseAuthActivity::class.java)
                 intent.putExtra("otp", codesent)
                 intent.putExtra("instituteid", companyid)
-                intent.putExtra("employeedetails", employeedetails)
+                intent.putExtra("phNumber", countrycode+number)
                 startActivity(intent)
             }
         }
     }
 
+//    private fun initAppIntegrity(){
+//        try{
+//            Firebase.initialize(context = this)
+//            Firebase.appCheck.installAppCheckProviderFactory(
+//                PlayIntegrityAppCheckProviderFactory.getInstance(),
+//            )
+//        }catch (e: Exception){
+//            Toast.makeText(applicationContext, "Unexpected error Occurred", Toast.LENGTH_SHORT).show()
+//        }
+//    }
+
     private fun checkIfRegistered(instituteId: String, pNumber: String) = CoroutineScope(Dispatchers.IO).launch{
-        var status: String? = null
-        val databaseRef = database.collection("Institutions").document(instituteId).collection("Employees")
-        val querySnapshot = databaseRef.whereEqualTo("empPhoneNo", pNumber).get().await()
-        if (querySnapshot.isEmpty){
-            withContext(Dispatchers.Main){
-                Toast.makeText(applicationContext, "Please check your Company/Institution ID", Toast.LENGTH_SHORT).show()
-                progressbarofmain.visibility = View.INVISIBLE
-            }
-        }
-        else {
-            for (document in querySnapshot) {
-                val employee = document.toObject<Employee>()
-                Log.d("new", employee.toString())
-                if (employee.EmpPhoneNo == pNumber) {
-                    employeedetails = employee
-                    status = "1"
+        val db = FirebaseFirestore.getInstance()
+        try{
+            val doc = db.collection("Users").document(countrycode+pNumber).get().await()
+            if (doc.exists()){
+                Log.d("user00", doc.toString())
+                val user = doc.toObject<User>()
+                Log.d("user00", user.toString())
+                if (user != null) {
+                    if (user.instituteID == instituteId && user.role == "Employee") {
+                        withContext(Dispatchers.Main) {
+                            binding.progressbarofmain.visibility = View.VISIBLE
+                        }
+                        phonenumber = countrycode + pNumber
+                        val options: PhoneAuthOptions =
+                            PhoneAuthOptions.newBuilder(firebaseAuth).setPhoneNumber(phonenumber)
+                                .setTimeout(60L, TimeUnit.SECONDS)
+                                .setActivity(this@LoginActivity)
+                                .setCallbacks(callBacks)
+                                .build()
+                        PhoneAuthProvider.verifyPhoneNumber(options)
+                    }else if (user.instituteID == instituteId && user.role == "Employer"){
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                applicationContext,
+                                "You are not registered as Employee",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            binding.progressbarofmain.visibility = View.INVISIBLE
+                        }
+                    }else {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                applicationContext,
+                                "Please enter correct Institute ID",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            binding.progressbarofmain.visibility = View.INVISIBLE
+                        }
+                    }
                 }
-            }
-            if (status == null) {
+            }else {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(
                         applicationContext,
                         "Please enter registered number",
                         Toast.LENGTH_SHORT
                     ).show()
-                    progressbarofmain.visibility = View.INVISIBLE
+                    binding.progressbarofmain.visibility = View.INVISIBLE
                 }
-            } else {
-                withContext(Dispatchers.Main) {
-                    progressbarofmain.visibility = View.VISIBLE
-                }
-                phonenumber = countrycode + pNumber
-                val options: PhoneAuthOptions =
-                    PhoneAuthOptions.newBuilder(firebaseAuth).setPhoneNumber(phonenumber)
-                        .setTimeout(60L, TimeUnit.SECONDS)
-                        .setActivity(this@LoginActivity)
-                        .setCallbacks(callBacks)
-                        .build()
-                PhoneAuthProvider.verifyPhoneNumber(options)
+            }
+    }catch (e: Exception){
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    applicationContext,
+                    e.message,
+                    Toast.LENGTH_SHORT
+                ).show()
+                binding.progressbarofmain.visibility = View.INVISIBLE
+                Log.d("user00", e.message.toString())
             }
         }
     }
