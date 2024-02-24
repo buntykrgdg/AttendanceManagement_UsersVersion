@@ -8,10 +8,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
-import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.buntykrgdg.attendancemanagementusersversion.R
 import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.LeaveRequest
+import com.buntykrgdg.attendancemanagementusersversion.objects.UtilFunctions
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.CoroutineScope
@@ -93,9 +93,9 @@ class LeaveHistoryAdapter (val context: Context, private val instId: String, pri
             val doc = generalLeaveRef.get().await()
             if (doc.exists() && doc.toObject<LeaveRequest>()?.employeeid == empId) {
                 generalLeaveRef.delete().await()
-                showMessageOnMainThread("Leave Deleted")
+                UtilFunctions.showToast(context,"Leave Deleted")
             } else {
-                showMessageOnMainThread("Leave request not found")
+                UtilFunctions.showToast(context,"Leave request not found")
             }
 
             // Update UI on success
@@ -105,15 +105,7 @@ class LeaveHistoryAdapter (val context: Context, private val instId: String, pri
             }
         } catch (e: Exception) {
             // Handle exceptions for both delete operations
-            showMessageOnMainThread(e.message ?: "An error occurred")
+            UtilFunctions.showToast(context,e.message ?: "An error occurred")
         }
     }
-
-    // Helper function to show Toast messages on the main thread
-    private fun showMessageOnMainThread(message: String) {
-        CoroutineScope(Dispatchers.Main).launch {
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-        }
-    }
-
 }

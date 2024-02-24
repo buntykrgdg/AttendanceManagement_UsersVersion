@@ -1,8 +1,13 @@
 package com.buntykrgdg.attendancemanagementusersversion.objects
 
+import android.content.Context
+import android.widget.Toast
 import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.CheckInOutLog
 import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.LeaveRequest
 import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.Notice
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.ArrayList
 import java.util.Locale
@@ -52,4 +57,12 @@ object UtilFunctions {
         }
     }
 
+    private val mainScope = CoroutineScope(Dispatchers.Main)
+
+    fun showToast(context: Context?, message: String?) {
+        if (context == null || message == null) return // Safety check for null context or message
+        mainScope.launch {
+            Toast.makeText(context.applicationContext, message, Toast.LENGTH_SHORT).show()
+        }
+    }
 }

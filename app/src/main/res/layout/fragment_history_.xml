@@ -16,19 +16,40 @@
         android:queryBackground="@android:color/transparent"
         />
 
-    <Spinner
-        android:id="@+id/LeaveRequestsStatusSpinner"
-        android:layout_below="@id/searchviewAllLeaveRequests"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/LLScreening"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="25dp"
-        />
+        android:layout_below="@id/searchviewAllLeaveRequests"
+        android:orientation="horizontal"
+        android:weightSum="4"
+        android:gravity="center"
+        android:layout_marginHorizontal="10dp">
+
+        <Spinner
+            android:id="@+id/LeaveRequestsStatusSpinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:layout_marginHorizontal="25dp"
+            />
+
+        <Button
+            android:id="@+id/btnExport"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:text="Export"
+            android:layout_weight="1"
+            android:layout_gravity="center"/>
+    </LinearLayout>
+
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeToRefreshAllLeaves"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/LeaveRequestsStatusSpinner">
+        android:layout_below="@id/LLScreening">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerviewAllLeaveRequests"

@@ -4,19 +4,12 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ProgressBar
-import android.widget.TextView
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import com.buntykrgdg.attendancemanagementusersversion.R
 import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.Employee
 import com.buntykrgdg.attendancemanagementusersversion.databinding.ActivityFirebaseAuthBinding
-import com.buntykrgdg.attendancemanagementusersversion.databinding.ActivityLoginBinding
+import com.buntykrgdg.attendancemanagementusersversion.objects.UtilFunctions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.PhoneAuthCredential
@@ -29,10 +22,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
-
 class FirebaseAuthActivity : AppCompatActivity() {
     private lateinit var binding: ActivityFirebaseAuthBinding
-    
     private lateinit var enteredOtp: String
     private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var employeeDetails: Employee
@@ -60,7 +51,8 @@ class FirebaseAuthActivity : AppCompatActivity() {
         binding.btnverifyotp.setOnClickListener {
             enteredOtp = binding.getotp.text.toString()
             if(enteredOtp.isEmpty()){
-                Toast.makeText(applicationContext, "Enter your OTP first", Toast.LENGTH_SHORT).show()
+                
+                UtilFunctions.showToast(applicationContext, "Enter your OTP first")
             }
             else{
                 binding.progressbarofotpverification.visibility = View.VISIBLE
@@ -78,7 +70,7 @@ class FirebaseAuthActivity : AppCompatActivity() {
             } else {
                 if (p0.exception is FirebaseAuthInvalidCredentialsException) {
                     binding.progressbarofotpverification.visibility = View.INVISIBLE
-                    Toast.makeText(applicationContext, "Login Failed", Toast.LENGTH_SHORT).show()
+                    UtilFunctions.showToast(applicationContext, "Login Failed")
                 }
             }
         }
@@ -101,22 +93,20 @@ class FirebaseAuthActivity : AppCompatActivity() {
                 .collection("Employees").document(phNumber).get().await()
             if(!doc.exists()){
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(
+                    UtilFunctions.showToast(
                         applicationContext,
                         "Employee Not found",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    )
                 }
             }else{
                 employeeDetails = doc.toObject<Employee>()!!
             }
         }catch (e: Exception){
             withContext(Dispatchers.Main) {
-                Toast.makeText(
+                UtilFunctions.showToast(
                     applicationContext,
                     e.message,
-                    Toast.LENGTH_SHORT
-                ).show()
+                )
             }
         }
     }
@@ -129,12 +119,10 @@ class FirebaseAuthActivity : AppCompatActivity() {
             dbRef.update(map).await()
         }catch (e: Exception){
             withContext(Dispatchers.Main) {
-                Toast.makeText(
+                UtilFunctions.showToast(
                     applicationContext,
                     e.message,
-                    Toast.LENGTH_SHORT
-                ).show()
-                Log.d("user_uU", e.message.toString())
+                )
             }
         }
     }
@@ -147,12 +135,10 @@ class FirebaseAuthActivity : AppCompatActivity() {
             }
         }catch (e: Exception){
             withContext(Dispatchers.Main){
-                Toast.makeText(
+                UtilFunctions.showToast(
                     applicationContext,
                     e.message,
-                    Toast.LENGTH_SHORT
-                ).show()
-                Log.d("user_gIN", e.message.toString())
+                )
             }
         }
     }
@@ -179,7 +165,7 @@ class FirebaseAuthActivity : AppCompatActivity() {
             apply()
         }
         withContext(Dispatchers.Main){
-            Toast.makeText(applicationContext, "Login Successful", Toast.LENGTH_SHORT).show()
+            UtilFunctions.showToast(applicationContext, "Login Successful")
             val intent = Intent(this@FirebaseAuthActivity, MainActivity::class.java)
             startActivity(intent)
             finish()

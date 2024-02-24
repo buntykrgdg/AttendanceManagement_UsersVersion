@@ -8,12 +8,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import com.buntykrgdg.attendancemanagementusersversion.activities.LoginActivity
 import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.Employee
 import com.buntykrgdg.attendancemanagementusersversion.databinding.FragmentProfileBinding
+import com.buntykrgdg.attendancemanagementusersversion.objects.UtilFunctions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObject
@@ -38,14 +38,14 @@ class ProfileFragment : Fragment() {
     private lateinit var empphno: String
     private lateinit var empemail: String
     private val db = FirebaseFirestore.getInstance()
-    private val firebaseauth = FirebaseAuth.getInstance()
+    private val firebaseAuth = FirebaseAuth.getInstance()
 
     private var fragmentProfileBinding: FragmentProfileBinding? = null
     private val binding get() = fragmentProfileBinding!!
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         fragmentProfileBinding = FragmentProfileBinding.inflate(inflater, container, false)
 
         loadEmployeeDetails()
@@ -97,7 +97,7 @@ class ProfileFragment : Fragment() {
         dialogBuilder.setTitle("Logout")
         dialogBuilder.setMessage("Do you want to logout of the app?")
         dialogBuilder.setPositiveButton("Yes") { _, _ ->
-            firebaseauth.signOut()
+            firebaseAuth.signOut()
             val sharedPref = activity?.getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
             val editor = sharedPref?.edit()
             editor?.clear()
@@ -145,19 +145,18 @@ class ProfileFragment : Fragment() {
                 }
             }else{
                 withContext(Dispatchers.Main){
-                    Toast.makeText(activity as Context, "Employee not found", Toast.LENGTH_SHORT).show()
+                    UtilFunctions.showToast(activity as Context, "Employee not found")
                 }
             }
         }catch (e: Exception){
-            Toast.makeText(activity as Context, e.message, Toast.LENGTH_SHORT).show()
+            UtilFunctions.showToast(activity as Context, e.message)
         }
         binding.swipeToRefreshProfile.isRefreshing = false
         reloadFragment()
     }
 
     private fun reloadFragment(){ // Complete
-        var frg: Fragment? = null
-        frg = activity?.supportFragmentManager?.findFragmentByTag("ProfileFragment")
+        val frg: Fragment? = activity?.supportFragmentManager?.findFragmentByTag("ProfileFragment")
         val ft: FragmentTransaction? = activity?.supportFragmentManager?.beginTransaction()
         if (frg != null) {
             if (ft != null) {

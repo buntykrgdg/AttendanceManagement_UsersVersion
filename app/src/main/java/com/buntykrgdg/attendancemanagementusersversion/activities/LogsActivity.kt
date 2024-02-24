@@ -4,18 +4,12 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
 import android.view.View
-import android.widget.ProgressBar
-import android.widget.RelativeLayout
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.buntykrgdg.attendancemanagementusersversion.R
 import com.buntykrgdg.attendancemanagementusersversion.classes.adapters.DateLogsAdapter
 import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.CheckInOutLog
 import com.buntykrgdg.attendancemanagementusersversion.databinding.ActivityLogsBinding
-import com.buntykrgdg.attendancemanagementusersversion.databinding.ActivityMainBinding
 import com.buntykrgdg.attendancemanagementusersversion.objects.UtilFunctions
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObject
@@ -35,7 +29,7 @@ class LogsActivity : AppCompatActivity() {
     private lateinit var instituteId: String
     private lateinit var date: String
     private lateinit var empId: String
-    private lateinit var empphno: String
+    private lateinit var empPhNo: String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLogsBinding.inflate(layoutInflater)
@@ -50,7 +44,7 @@ class LogsActivity : AppCompatActivity() {
         if (sharedPref != null) {
             instituteId = sharedPref.getString("EmpInstituteId", "Your InsID").toString()
             empId = sharedPref.getString("EmpID", "Your EmpID").toString()
-            empphno = sharedPref.getString("PhoneNumber", "PhoneNumber").toString()
+            empPhNo = sharedPref.getString("PhoneNumber", "PhoneNumber").toString()
         }
 
         logsAdapter = DateLogsAdapter(this@LogsActivity, tempArrayList)
@@ -66,43 +60,31 @@ class LogsActivity : AppCompatActivity() {
 
     @SuppressLint("NotifyDataSetChanged")
     private fun getLogList() = CoroutineScope(Dispatchers.IO).launch {
-        // Clear lists on the IO thread to avoid unnecessary context switches
         logsList.clear()
         tempArrayList.clear()
-
         val dbRef = db.collection("Institutions").document(instituteId)
-            .collection("Employees").document(empphno)
+            .collection("Employees").document(empPhNo)
             .collection("Logs").document(date)
             .collection("CheckInCheckOut")
-
         try {
             val querySnapshot = dbRef.get().await()
             if (!querySnapshot.isEmpty) {
-                // Directly use mapNotNull to filter non-null mapped objects and add them to logsList
                 logsList.addAll(querySnapshot.documents.mapNotNull { it.toObject<CheckInOutLog>() })
                 tempArrayList.addAll(logsList)
                 UtilFunctions.sortCheckInCheckOutByTimestamp(tempArrayList)
-
-                // Perform UI updates on the Main thread
                 withContext(Dispatchers.Main) {
                     binding.recyclerviewDateLogs.adapter?.notifyDataSetChanged()
                 }
             } else {
-                showToast("No logs found")
+                UtilFunctions.showToast(this@LogsActivity,"No logs found")
             }
         } catch (e: Exception) {
-            showToast(e.message ?: "Error fetching logs")
+            UtilFunctions.showToast(this@LogsActivity, e.message ?: "Error fetching logs")
         } finally {
-            // Ensure the progress indicator and swipe refresh are updated in the Main thread after operation
             withContext(Dispatchers.Main) {
                 binding.progresslayoutDateLogs.visibility = View.GONE
                 binding.swipeToRefreshDateLogs.isRefreshing = false
             }
         }
-    }
-
-    // Helper function to show Toast messages on the main thread
-    private fun showToast(message: String) = CoroutineScope(Dispatchers.Main).launch {
-        Toast.makeText(this@LogsActivity, message, Toast.LENGTH_SHORT).show()
     }
 }

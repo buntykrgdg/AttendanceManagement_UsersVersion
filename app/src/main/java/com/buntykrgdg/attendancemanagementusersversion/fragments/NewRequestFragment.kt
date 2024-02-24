@@ -15,15 +15,14 @@ import android.widget.*
 import androidx.fragment.app.Fragment
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
-import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.CheckInOutLog
 import com.buntykrgdg.attendancemanagementusersversion.R
 import com.buntykrgdg.attendancemanagementusersversion.activities.LoginActivity
+import com.buntykrgdg.attendancemanagementusersversion.classes.Leaves
+import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.CheckInOutLog
 import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.Employee
 import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.LeaveRequest
-import com.buntykrgdg.attendancemanagementusersversion.classes.Leaves
 import com.buntykrgdg.attendancemanagementusersversion.databinding.FragmentNewRequestBinding
-import com.buntykrgdg.attendancemanagementusersversion.databinding.FragmentProfileBinding
-import com.google.android.material.card.MaterialCardView
+import com.buntykrgdg.attendancemanagementusersversion.objects.UtilFunctions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
@@ -85,8 +84,6 @@ class NewRequestFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         fragmentNewRequestBinding = FragmentNewRequestBinding.inflate(inflater, container, false)
-
-        val view = inflater.inflate(R.layout.fragment_blank, container, false)
 
         binding.txtDate.text = getDate()
         binding.txtDay.text = getDay()
@@ -247,29 +244,21 @@ class NewRequestFragment : Fragment() {
 
         binding.btnSendRequestHalfDay.setOnClickListener {
             if (binding.halfdayleavedate.text.toString() == "") {
-                Toast.makeText(
+                UtilFunctions.showToast(
                     activity as Context,
-                    "Please select the day of leave",
-                    Toast.LENGTH_SHORT
-                ).show()
+                    "Please select the day of leave")
             } else if (binding.RGHalfDay.checkedRadioButtonId == -1) {
-                Toast.makeText(activity as Context, "Please select session", Toast.LENGTH_SHORT)
-                    .show()
+                UtilFunctions.showToast(activity as Context, "Please select session")
             } else if (binding.RGHalfDayLeaveTypeSelection.checkedRadioButtonId == -1) {
-                Toast.makeText(
+                UtilFunctions.showToast(
                     activity as Context,
-                    "Please select type of leave",
-                    Toast.LENGTH_SHORT
-                ).show()
+                    "Please select type of leave")
             } else if (binding.ETHalfDayleaveReason.text.toString() == "") {
-                Toast.makeText(activity as Context, "Please enter the reason", Toast.LENGTH_SHORT)
-                    .show()
+                UtilFunctions.showToast(activity as Context, "Please enter the reason")
             } else if (binding.txtHalfDayNote.visibility == View.VISIBLE) {
-                Toast.makeText(
+                UtilFunctions.showToast(
                     activity as Context,
-                    "You don't have sufficient leaves",
-                    Toast.LENGTH_SHORT
-                ).show()
+                    "You don't have sufficient leaves")
             } else {
                 val currentTimeMillis = System.currentTimeMillis()
                 val sdf = SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss a", Locale.getDefault())
@@ -354,26 +343,19 @@ class NewRequestFragment : Fragment() {
 
         binding.btnSendRequestOneDay.setOnClickListener {
             if (binding.onedayleavedate.text.toString() == "") {
-                Toast.makeText(
+                UtilFunctions.showToast(
                     activity as Context,
-                    "Please select the day of leave",
-                    Toast.LENGTH_SHORT
-                ).show()
+                    "Please select the day of leave")
             } else if (binding.RGOneDayLeaveTypeSelection.checkedRadioButtonId == -1) {
-                Toast.makeText(
+                UtilFunctions.showToast(
                     activity as Context,
-                    "Please select type of leave",
-                    Toast.LENGTH_SHORT
-                ).show()
+                    "Please select type of leave")
             } else if (binding.ETonedayleaveReason.text.toString() == "") {
-                Toast.makeText(activity as Context, "Please enter the reason", Toast.LENGTH_SHORT)
-                    .show()
+                UtilFunctions.showToast(activity as Context, "Please enter the reason")
             } else if (binding.txtOneDayNote.visibility == View.VISIBLE) {
-                Toast.makeText(
+                UtilFunctions.showToast(
                     activity as Context,
-                    "You don't have sufficient leaves",
-                    Toast.LENGTH_SHORT
-                ).show()
+                    "You don't have sufficient leaves")
             } else {
                 val currentTimeMillis = System.currentTimeMillis()
                 val sdf = SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss a", Locale.getDefault())
@@ -424,13 +406,11 @@ class NewRequestFragment : Fragment() {
                     MorethanOnedayFromselected = "morning"
                     updateNoOfLeaves()
                 }
-
                 R.id.FromafternoonRadioBtn -> {
                     // User selected afternoon session
                     MorethanOnedayFromselected = "afternoon"
                     updateNoOfLeaves()
                 }
-
                 else -> {
                     // User unselected the selected session
                 }
@@ -444,13 +424,11 @@ class NewRequestFragment : Fragment() {
                     MorethanOnedayToselected = "morning"
                     updateNoOfLeaves()
                 }
-
                 R.id.ToafternoonRadioBtn -> {
                     // User selected afternoon session
                     MorethanOnedayToselected = "afternoon"
                     updateNoOfLeaves()
                 }
-
                 else -> {
                     // User unselected the selected session
                 }
@@ -514,57 +492,16 @@ class NewRequestFragment : Fragment() {
         }
 
         binding.btnSendRequestMorethan1.setOnClickListener {
-            if (binding.leavefromdate.text.toString() == "") {
-                Toast.makeText(
-                    activity as Context,
-                    "Please select the first day of leave",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else if (binding.RGradiofrom.checkedRadioButtonId == -1) {
-                Toast.makeText(
-                    activity as Context,
-                    "Please select session of From date",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else if (binding.leavetodate.text.toString() == "") {
-                Toast.makeText(
-                    activity as Context,
-                    "Please select the last day of leave",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else if (binding.RGradioto.checkedRadioButtonId == -1) {
-                Toast.makeText(
-                    activity as Context,
-                    "Please select session of To date",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else if (binding.RGMorethanOneDayLeaveTypeSelection.checkedRadioButtonId == -1) {
-                Toast.makeText(
-                    activity as Context,
-                    "Please select type of leave",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else if (binding.ETleaveReason.text.toString() == "") {
-                Toast.makeText(activity as Context, "Please enter the reason", Toast.LENGTH_SHORT)
-                    .show()
-            } else if (daysfinder.isToDateBeforeFromDate(
-                    binding.leavefromdate.text.toString(),
-                    binding.leavetodate.text.toString()
-                )
-            ) {
-                Toast.makeText(
-                    activity as Context,
-                    "Invalid 'From' and 'To' date",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else if (binding.txtMoreThanOneDayNote.visibility == View.VISIBLE) {
-                Toast.makeText(
-                    activity as Context,
-                    "You don't have sufficient leaves",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else {
-
+            if (binding.leavefromdate.text.toString() == "") UtilFunctions.showToast(activity as Context,"Please select the first day of leave")
+            else if (binding.RGradiofrom.checkedRadioButtonId == -1) UtilFunctions.showToast(activity as Context, "Please select session of From date")
+            else if (binding.leavetodate.text.toString() == "") UtilFunctions.showToast(activity as Context, "Please select the last day of leave")
+            else if (binding.RGradioto.checkedRadioButtonId == -1) UtilFunctions.showToast(activity as Context, "Please select session of To date")
+            else if (binding.RGMorethanOneDayLeaveTypeSelection.checkedRadioButtonId == -1) UtilFunctions.showToast(activity as Context, "Please select type of leave")
+            else if (binding.ETleaveReason.text.toString() == "") UtilFunctions.showToast(activity as Context, "Please enter the reason")
+            else if (daysfinder.isToDateBeforeFromDate(binding.leavefromdate.text.toString(),binding.leavetodate.text.toString())
+            ) UtilFunctions.showToast(activity as Context, "Invalid 'From' and 'To' date")
+            else if (binding.txtMoreThanOneDayNote.visibility == View.VISIBLE) UtilFunctions.showToast(activity as Context, "You don't have sufficient leaves")
+            else {
                 val currentTimeMillis = System.currentTimeMillis()
                 val sdf = SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss a", Locale.getDefault())
                 val formattedDateTime = sdf.format(Date(currentTimeMillis))
@@ -584,12 +521,14 @@ class NewRequestFragment : Fragment() {
                     morethan1daynoofleaves, binding.ETleaveReason.text.toString(), "", "Pending"
                 )
 
-                binding.RGradiofrom.clearCheck()
-                binding.RGradioto.clearCheck()
-                binding.RGMorethanOneDayLeaveTypeSelection.clearCheck()
-                binding.leavefromdate.text.clear()
-                binding.leavetodate.text.clear()
-                binding.ETleaveReason.text.clear()
+                with(binding){
+                    RGradiofrom.clearCheck()
+                    RGradioto.clearCheck()
+                    RGMorethanOneDayLeaveTypeSelection.clearCheck()
+                    leavefromdate.text.clear()
+                    leavetodate.text.clear()
+                    ETleaveReason.text.clear()
+                }
                 MorethanOnedayFromselected = ""
                 MorethanOnedayToselected = ""
                 morethan1dayleavetype = ""
@@ -619,8 +558,7 @@ class NewRequestFragment : Fragment() {
             try {
                 databaseref.set(leaveRequest).await()
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(activity as Context, "Leave request sent", Toast.LENGTH_SHORT)
-                        .show()
+                    UtilFunctions.showToast(activity as Context, "Leave request sent")
                     val title = "MLR"
                     val message = "$empname has requested for a leave"
                     sendEmployerNotification(title, message)
@@ -628,7 +566,7 @@ class NewRequestFragment : Fragment() {
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(activity as Context, e.message, Toast.LENGTH_SHORT).show()
+                    UtilFunctions.showToast(activity as Context, e.message)
                     binding.progressbarofNewRequest.visibility = View.GONE
                 }
             }
@@ -660,7 +598,6 @@ class NewRequestFragment : Fragment() {
                 )
                 databaseRef2.set(newLog).await()
                 withContext(Dispatchers.Main) {
-                    //Toast.makeText(activity as Context, "Log updated", Toast.LENGTH_SHORT).show()
                     val title = "MLR"
                     val message: String = if (status == "Checked In") "$empname has checked in"
                     else "$empname has checked out for $reason"
@@ -670,7 +607,7 @@ class NewRequestFragment : Fragment() {
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(activity as Context, e.message, Toast.LENGTH_SHORT).show()
+                    UtilFunctions.showToast(activity as Context, e.message)
                     binding.progressbarofNewRequest.visibility = View.GONE
                 }
             }
@@ -693,11 +630,9 @@ class NewRequestFragment : Fragment() {
             }
         }catch (e: Exception){
             withContext(Dispatchers.Main) {
-                Toast.makeText(
+                UtilFunctions.showToast(
                     activity as Context,
-                    e.message + "Get Remaining leaves",
-                    Toast.LENGTH_SHORT
-                ).show()
+                    e.message + "Get Remaining leaves")
             }
         }
     }
@@ -724,14 +659,13 @@ class NewRequestFragment : Fragment() {
                 binding.txtCheckInOutStatus.text = "You have $status"
             }
         }catch (e: Exception){
-            Toast.makeText(
+            UtilFunctions.showToast(
                 activity as Context,
-                e.message +"Get current status",
-                Toast.LENGTH_SHORT
-            ).show()
+                e.message +"Get current status")
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun getCurrentStatusFromSP(){
         if (empStatus == "Checked Out") {
             binding.btnCheckOut.isEnabled = false
@@ -755,7 +689,7 @@ class NewRequestFragment : Fragment() {
         try{
             databaseRef.set(map, SetOptions.merge()).await()
             withContext(Dispatchers.Main){
-                Toast.makeText(activity as Context, status, Toast.LENGTH_SHORT).show()
+                UtilFunctions.showToast(activity as Context, status)
                 val sharedPref = requireActivity().getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
                 with (sharedPref.edit()) {
                     putString("status", status)
@@ -764,11 +698,9 @@ class NewRequestFragment : Fragment() {
             }
             getCurrentStatus()
         }catch (e: Exception){
-            Toast.makeText(
+            UtilFunctions.showToast(
                 activity as Context,
-                e.message,
-                Toast.LENGTH_SHORT
-            ).show()
+                e.message)
         }
     }
 
@@ -855,6 +787,7 @@ class NewRequestFragment : Fragment() {
                     )
                 )
                 view.setText(formattedDate)
+                updateNoOfLeaves()
             },
             year,
             month,
@@ -895,7 +828,6 @@ class NewRequestFragment : Fragment() {
             }
         }
     }
-
 
     private fun sendEmployerNotification(title:String, message:String) =
         CoroutineScope(Dispatchers.IO).launch {
@@ -982,17 +914,15 @@ class NewRequestFragment : Fragment() {
                 .collection("Employees").document(empphno).get().await()
             if(!doc.exists()){
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(
+                    UtilFunctions.showToast(
                         activity as Context,
-                        "Your account has been deleted",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                        "Your account has been deleted")
                 }
             }else{
                 val employee = doc.toObject<Employee>()!!
                 if (employee.EmpPhoneNo != empphno){
                     withContext(Dispatchers.Main){
-                        Toast.makeText(activity as Context, "Your number has been changed by Employer", Toast.LENGTH_LONG).show()
+                        UtilFunctions.showToast(activity as Context, "Your number has been changed by Employer")
                         logout()
                     }
                 }
@@ -1027,11 +957,7 @@ class NewRequestFragment : Fragment() {
             }
         }catch (e: Exception){
             withContext(Dispatchers.Main) {
-                Toast.makeText(
-                    activity as Context,
-                    e.message + "Get employee details",
-                    Toast.LENGTH_SHORT
-                ).show()
+                UtilFunctions.showToast(activity as Context,e.message + "Get employee details")
             }
         }
     }

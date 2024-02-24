@@ -3,21 +3,15 @@ package com.buntykrgdg.attendancemanagementusersversion.fragments
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ProgressBar
-import android.widget.RelativeLayout
 import android.widget.SearchView
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.buntykrgdg.attendancemanagementusersversion.R
 import com.buntykrgdg.attendancemanagementusersversion.classes.adapters.AllNoticesAdapter
 import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.Notice
-import com.buntykrgdg.attendancemanagementusersversion.databinding.FragmentHistoryBinding
 import com.buntykrgdg.attendancemanagementusersversion.databinding.FragmentNoticesBinding
 import com.buntykrgdg.attendancemanagementusersversion.objects.UtilFunctions
 import com.google.firebase.firestore.FirebaseFirestore
@@ -29,6 +23,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.util.Locale
+
 class NoticesFragment : Fragment() {
     private lateinit var layoutManager: RecyclerView.LayoutManager
     private var allNoticesList = arrayListOf<Notice>()
@@ -97,17 +92,19 @@ class NoticesFragment : Fragment() {
             .document(instituteId)
             .collection("Notices")
             .orderBy("timestamp", Query.Direction.DESCENDING)
-        val querySnapshot = dbRef.get().await()
-        for (document in querySnapshot.documents) {
-            Log.d("db", document.toString())
-            document.toObject<Notice>()?.let { allNoticesList.add(it) }
-        }
-        tempArrayList.addAll(allNoticesList)
-        UtilFunctions.sortNoticeByTimestamp(tempArrayList)
-        withContext(Dispatchers.Main) {
-            binding.recyclerviewAllNotices.adapter?.notifyDataSetChanged()
-            binding.progresslayoutAllNotices.visibility = View.GONE
-            binding.swipeToRefreshAllNotices.isRefreshing = false
+        try{
+            val querySnapshot = dbRef.get().await()
+            val allNoticesList = querySnapshot.documents.mapNotNull { it.toObject<Notice>() }
+            tempArrayList.addAll(allNoticesList)
+            UtilFunctions.sortNoticeByTimestamp(tempArrayList)
+        }catch (e: Exception) {
+            UtilFunctions.showToast(activity as Context, e.message ?: "Error fetching logs")
+        }finally {
+            withContext(Dispatchers.Main) {
+                binding.recyclerviewAllNotices.adapter?.notifyDataSetChanged()
+                binding.progresslayoutAllNotices.visibility = View.GONE
+                binding.swipeToRefreshAllNotices.isRefreshing = false
+            }
         }
     }
 }
