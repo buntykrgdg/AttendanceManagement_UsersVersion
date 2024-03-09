@@ -886,24 +886,21 @@ class NewRequestFragment : Fragment() {
         try {
             val fcmToken = FirebaseMessaging.getInstance().token.await()
 
-            // Continue only if the shared preferences are available
             val sharedPref = activity?.getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
             val instituteId = sharedPref?.getString("EmpInstituteId", "")
             val employeePhno = sharedPref?.getString("PhoneNumber", "")
             if (instituteId.isNullOrEmpty() || employeePhno.isNullOrEmpty()) {
-                Log.d(ContentValues.TAG, "No institute ID/employee ID found")
+                Log.d("FCM", "No institute ID/employee ID found")
                 return@launch
             }
-
             val map = mutableMapOf<String, Any>("fcmToken" to fcmToken)
             val databaseRef = FirebaseFirestore.getInstance().collection("Institutions")
                 .document(instituteId)
                 .collection("Employees")
                 .document(employeePhno)
-
             databaseRef.set(map, SetOptions.merge()).await()
         } catch (e: Exception) {
-            Log.d(ContentValues.TAG, "Error fetching FCM token or updating Firestore: ${e.message}")
+            Log.d("FCM", "Error fetching FCM token or updating Firestore: ${e.message}")
         }
     }
 
@@ -927,10 +924,7 @@ class NewRequestFragment : Fragment() {
                     }
                 }
                 else{
-                    val fcmStatus = doc.get("fcmToken")
-                    if (fcmStatus == null){
-                        getFcmToken()
-                    }
+                    getFcmToken()
                     val sharedPref = activity?.getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
                     if (sharedPref != null) {
                         with (sharedPref.edit()) {
