@@ -12,6 +12,7 @@ import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.Check
 import com.buntykrgdg.attendancemanagementusersversion.databinding.ActivityLogsBinding
 import com.buntykrgdg.attendancemanagementusersversion.objects.UtilFunctions
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.toObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -66,12 +67,12 @@ class LogsActivity : AppCompatActivity() {
             .collection("Employees").document(empPhNo)
             .collection("Logs").document(date)
             .collection("CheckInCheckOut")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
         try {
             val querySnapshot = dbRef.get().await()
             if (!querySnapshot.isEmpty) {
                 logsList.addAll(querySnapshot.documents.mapNotNull { it.toObject<CheckInOutLog>() })
                 tempArrayList.addAll(logsList)
-                UtilFunctions.sortCheckInCheckOutByTimestamp(tempArrayList)
                 withContext(Dispatchers.Main) {
                     binding.recyclerviewDateLogs.adapter?.notifyDataSetChanged()
                 }

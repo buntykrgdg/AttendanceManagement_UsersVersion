@@ -10,6 +10,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.CheckInOutLog
 import com.buntykrgdg.attendancemanagementusersversion.R
+import com.buntykrgdg.attendancemanagementusersversion.objects.UtilFunctions
 
 class DateLogsAdapter (val context: Context, private val allLogsList:ArrayList<CheckInOutLog>): RecyclerView.Adapter<DateLogsAdapter.DateLogsViewHolder>(){
     class DateLogsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -31,7 +32,7 @@ class DateLogsAdapter (val context: Context, private val allLogsList:ArrayList<C
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: DateLogsViewHolder, position: Int) {
         val log = allLogsList[position]
-        holder.txtTimeStamp.text = log.timestamp
+        holder.txtTimeStamp.text = log.timestamp?.let { UtilFunctions.millisToString(it) }
         when(log.status){
             "Checked In" -> {
                 holder.txtReasonHead.visibility = View.GONE

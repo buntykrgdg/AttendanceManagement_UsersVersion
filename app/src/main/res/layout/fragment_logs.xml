@@ -3,24 +3,34 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".fragments.LogsFragment">
 
-    <SearchView
-        android:id="@+id/searchviewAllLogs"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/DateHFLYT"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="10dp"
-        android:queryHint="Enter date"
-        android:iconifiedByDefault="false"
-        android:queryBackground="@android:color/transparent"
-        />
+        android:layout_gravity="center"
+        android:layout_weight="4"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="15dp"
+        android:hint="Date"
+        app:endIconMode="custom"
+        app:endIconDrawable="@drawable/ic_clear_black_24dp"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/DateHF"
+            android:inputType="textCapWords"
+            android:focusable="false"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeToRefreshAllLogs"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/searchviewAllLogs">
+        android:layout_below="@id/DateHFLYT">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerviewAllLogs"
@@ -33,7 +43,7 @@
 
     <RelativeLayout
         android:id="@+id/progresslayoutAllLogs"
-        android:layout_below="@id/searchviewAllLogs"
+        android:layout_below="@id/DateHFLYT"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <ProgressBar

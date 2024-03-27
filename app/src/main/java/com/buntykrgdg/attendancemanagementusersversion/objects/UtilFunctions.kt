@@ -1,15 +1,16 @@
 package com.buntykrgdg.attendancemanagementusersversion.objects
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.widget.Toast
 import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.CheckInOutLog
-import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.LeaveRequest
 import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.Notice
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.ArrayList
+import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 object UtilFunctions {
@@ -25,12 +26,17 @@ object UtilFunctions {
         return date?.time ?: 0
     }
 
-    fun sortLeaveRequestByTimestamp(list: ArrayList<LeaveRequest>) {
-        list.sortWith { leaveRequest1, leaveRequest2 ->
-            val timestamp1 = convertStringToTimestamp(leaveRequest1.timestamp ?: "")
-            val timestamp2 = convertStringToTimestamp(leaveRequest2.timestamp ?: "")
-            timestamp2.compareTo(timestamp1) // Descending order, use timestamp1.compareTo(timestamp2) for ascending
-        }
+    fun millisToString(timestamp: String): String {
+        val sdf = SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss a", Locale.getDefault())
+        return sdf.format(timestamp.toLong())
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    fun getTimestampAndDate(): Pair<String, String> {
+        val dateFormat = SimpleDateFormat("dd-MM-yyyy")
+        val timestamp = Calendar.getInstance().timeInMillis
+        val formattedDate = dateFormat.format(timestamp)
+        return Pair(timestamp.toString(), formattedDate)
     }
 
     fun sortCheckInCheckOutByTimestamp(list: ArrayList<CheckInOutLog>) {
@@ -49,14 +55,23 @@ object UtilFunctions {
         }
     }
 
-    fun sortNoticeByTimestamp(list: ArrayList<Notice>) {
-        list.sortWith { notice1, notice2 ->
-            val timestamp1 = convertStringToTimestamp(notice1.timestamp ?: "")
-            val timestamp2 = convertStringToTimestamp(notice2.timestamp ?: "")
-            timestamp2.compareTo(timestamp1) // Descending order, use timestamp1.compareTo(timestamp2) for ascending
-        }
+    fun millisToDate(millis: Long): String {
+        val formatter = SimpleDateFormat("dd-MM-yyyy")
+        val date = Date(millis)
+        return formatter.format(date)
     }
 
+    @SuppressLint("SimpleDateFormat")
+    fun stringToMillis(dateString: String): Long {
+        val formatter = SimpleDateFormat("dd-MM-yyyy")
+        return try {
+            val date = formatter.parse(dateString)
+            date.time
+        } catch (e: Exception) {
+            e.printStackTrace()
+            -1 // Or throw an exception if preferred
+        }
+    }
     private val mainScope = CoroutineScope(Dispatchers.Main)
 
     fun showToast(context: Context?, message: String?) {

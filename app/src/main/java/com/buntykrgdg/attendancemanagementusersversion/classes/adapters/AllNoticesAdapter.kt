@@ -9,6 +9,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.buntykrgdg.attendancemanagementusersversion.R
 import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.Notice
+import com.buntykrgdg.attendancemanagementusersversion.objects.UtilFunctions
 
 class AllNoticesAdapter (val context: Context, private val allNoticesList:ArrayList<Notice>): RecyclerView.Adapter<AllNoticesAdapter.AllNoticesViewHolder>(){
     class AllNoticesViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -28,7 +29,7 @@ class AllNoticesAdapter (val context: Context, private val allNoticesList:ArrayL
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: AllNoticesViewHolder, position: Int) {
         val notice = allNoticesList[position]
-        holder.txtTimeStamp.text = notice.timestamp
+        holder.txtTimeStamp.text = notice.timestamp?.let { UtilFunctions.millisToString(it) }
         holder.txtNotice.text = notice.message
     }
 }

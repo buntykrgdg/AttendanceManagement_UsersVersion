@@ -4,4 +4,4 @@ data class CheckInOutLog(
     val timestamp: String? = "",
     val reason: String? = "",
     val status: String?= ""
-)
+): java.io.Serializable

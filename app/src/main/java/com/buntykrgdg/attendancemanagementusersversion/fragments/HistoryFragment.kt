@@ -1,15 +1,19 @@
 package com.buntykrgdg.attendancemanagementusersversion.fragments
 
 import android.annotation.SuppressLint
+import android.app.DatePickerDialog
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Environment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.DatePicker
+import android.widget.EditText
 import android.widget.SearchView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,6 +26,8 @@ import com.buntykrgdg.attendancemanagementusersversion.classes.dataclasses.Leave
 import com.buntykrgdg.attendancemanagementusersversion.databinding.FragmentHistoryBinding
 import com.buntykrgdg.attendancemanagementusersversion.objects.UtilFunctions
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.ktx.toObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,6 +42,8 @@ import org.apache.poi.ss.usermodel.Workbook
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 class HistoryFragment : Fragment() {
@@ -57,12 +65,16 @@ class HistoryFragment : Fragment() {
     private var currentEL: Double = 0.0
     private lateinit var leaveRequestsStatusAdapter: ArrayAdapter<String>
 
+    private val limit = 4
+    private var isLoadingMore = false
+    private var querySnapshot: QuerySnapshot? = null
+
     private var fragmentHistoryBinding: FragmentHistoryBinding? = null
     private val binding get() = fragmentHistoryBinding!!
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         fragmentHistoryBinding = FragmentHistoryBinding.inflate(inflater, container, false)
 
         val sharedPref = activity?.getSharedPreferences("AttendanceManagementUV", Context.MODE_PRIVATE)
@@ -89,20 +101,26 @@ class HistoryFragment : Fragment() {
         binding.recyclerviewAllLeaveRequests.adapter = leaveHistoryAdapter
         binding.recyclerviewAllLeaveRequests.layoutManager = layoutManager
 
-        binding.swipeToRefreshAllLeaves.setOnRefreshListener {
+        binding.DateHFLYT.setEndIconOnClickListener {
+            binding.DateHF.text?.clear()
+            binding.LeaveRequestsStatusSpinner.isEnabled = true
             if(binding.LeaveRequestsStatusSpinner.selectedItem.toString() == "All") getLeaveRequestList("")
             else  getLeaveRequestList(binding.LeaveRequestsStatusSpinner.selectedItem.toString())
         }
+        binding.DateHF.setOnClickListener {
+            showDatePicker(binding.DateHF)
+        }
 
-        binding.btnExport.setOnClickListener{
-            try {
-                if (empphno != "PhoneNumber") {
-                    exportXlsFile(tempArrayList)
-                }
-            }catch (e: Exception){
-                UtilFunctions.showToast(activity as Context, e.message + "Insufficient Permissions")
+        binding.swipeToRefreshAllLeaves.setOnRefreshListener {
+            if(binding.LeaveRequestsStatusSpinner.isEnabled) {
+                if (binding.LeaveRequestsStatusSpinner.selectedItem.toString() == "All") getLeaveRequestList("")
+                else getLeaveRequestList(binding.LeaveRequestsStatusSpinner.selectedItem.toString())
+            }else{
+                getDateLeaveRequestList(binding.DateHF.text.toString())
             }
         }
+
+        binding.recyclerviewAllLeaveRequests.addOnScrollListener(scrollListener)
 
         val statusOptions = listOf("All", "Accepted", "Rejected", "Pending")
         leaveRequestsStatusAdapter = ArrayAdapter(activity as Context, android.R.layout.simple_spinner_dropdown_item, statusOptions)
@@ -120,46 +138,88 @@ class HistoryFragment : Fragment() {
                 // Do nothing
             }
         }
-
-        binding.searchviewAllLeaveRequests.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                return false
-            }
-
-            @SuppressLint("NotifyDataSetChanged")
-            override fun onQueryTextChange(newText: String?): Boolean {
-                tempArrayList.clear()
-                val searchText = newText!!.lowercase(Locale.getDefault())
-
-                if (searchText.isNotEmpty()){
-                    leaveRequestList.forEach{
-                        if (it.timestamp?.lowercase(Locale.getDefault())?.contains(searchText) == true){
-                            tempArrayList.add(it)
-                        }
-                    }
-                    binding.recyclerviewAllLeaveRequests.adapter?.notifyDataSetChanged()
-                }
-                else{
-                    tempArrayList.clear()
-                    tempArrayList.addAll(leaveRequestList)
-                    binding.recyclerviewAllLeaveRequests.adapter?.notifyDataSetChanged()
-                }
-                return false
-            }
-        })
         return binding.root
     }
 
+    private val scrollListener = object : RecyclerView.OnScrollListener() {
+        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+            if (binding.LeaveRequestsStatusSpinner.isEnabled){
+                super.onScrolled(recyclerView, dx, dy)
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                val visibleItemCount = layoutManager.childCount
+                val totalItemCount = layoutManager.itemCount
+                val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
+
+                val isLastItem = visibleItemCount + firstVisibleItemPosition >= totalItemCount
+                val isAtEnd = !recyclerView.canScrollVertically(1) // Check for scrolling down
+                if (isAtEnd && !isLoadingMore) {
+                    // Load more data logic here
+                    isLoadingMore = true // Set flag to avoid multiple loads
+                    if(binding.LeaveRequestsStatusSpinner.selectedItem.toString() == "All"){
+                        loadMoreData()
+                    }
+                    else{
+                        loadMoreData(binding.LeaveRequestsStatusSpinner.selectedItem.toString())
+                    }
+                }
+            }
+        }
+    }
+
     @SuppressLint("NotifyDataSetChanged")
-    private fun getLeaveRequestList(status: String) = CoroutineScope(Dispatchers.IO).launch {
+    private fun loadMoreData(status: String? = null) {
+        binding.progresslayoutHistoryFragment.visibility = View.VISIBLE
         val dbRef = db.collection("Institutions").document(instituteId)
             .collection("Employees").document(empphno).collection("Leaves")
-        val query = if (status.isNotBlank()) dbRef.whereEqualTo("status", status) else dbRef
+        val lastDocument = querySnapshot?.documents?.lastOrNull()
+        if(lastDocument == null){
+            isLoadingMore = false
+            binding.progresslayoutHistoryFragment.visibility = View.GONE
+            return
+        }
+
+        val nextQuery = if (status != null) {
+            dbRef.whereEqualTo("status", status).orderBy("timestamp", Query.Direction.DESCENDING).limit(limit.toLong()).startAfter(lastDocument)
+        } else {
+            dbRef.orderBy("timestamp", Query.Direction.DESCENDING).limit(limit.toLong()).startAfter(lastDocument)
+        }
+
+        // Call Firebase to fetch next batch of data using nextQuery
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                querySnapshot = nextQuery.get().await()
+                if (querySnapshot!!.isEmpty) {
+                    // No more data available
+                    return@launch
+                }
+                val nextLeaveRequestList = querySnapshot!!.toObjects(LeaveRequest::class.java)
+                withContext(Dispatchers.Main) {
+                    tempArrayList.addAll(nextLeaveRequestList)
+                    binding.recyclerviewAllLeaveRequests.adapter?.notifyDataSetChanged()
+                }
+            } catch (e: Exception) {
+                // Handle error
+            } finally {
+                isLoadingMore = false // Reset flag after successful update
+                withContext(Dispatchers.Main) {
+                    binding.progresslayoutHistoryFragment.visibility = View.GONE
+                }
+            }
+        }
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    private fun getDateLeaveRequestList(Date:String) = CoroutineScope(Dispatchers.IO).launch{
+        withContext(Dispatchers.Main) {
+            binding.progresslayoutHistoryFragment.visibility = View.VISIBLE
+        }
+        val query = db.collection("Institutions").document(instituteId)
+            .collection("Employees").document(empphno).collection("Leaves").whereEqualTo("date", Date).orderBy("timestamp", Query.Direction.DESCENDING)
         val newLeaveRequestList = mutableListOf<LeaveRequest>()
 
         try {
-            val querySnapshot = query.get().await()
-            querySnapshot.documents.mapNotNullTo(newLeaveRequestList) { doc ->
+            querySnapshot = query.get().await()
+            querySnapshot!!.documents.mapNotNullTo(newLeaveRequestList) { doc ->
                 doc.toObject<LeaveRequest>()
             }
             withContext(Dispatchers.Main){
@@ -170,7 +230,6 @@ class HistoryFragment : Fragment() {
                 UtilFunctions.showToast(activity as Context,"No leaves found")
             } else {
                 val arrayList = ArrayList(newLeaveRequestList)
-                UtilFunctions.sortLeaveRequestByTimestamp(arrayList)
                 withContext(Dispatchers.Main) {
                     leaveRequestList.addAll(arrayList)
                     tempArrayList.addAll(arrayList)
@@ -187,6 +246,75 @@ class HistoryFragment : Fragment() {
                 binding.swipeToRefreshAllLeaves.isRefreshing = false
             }
         }
+    }
+    @SuppressLint("NotifyDataSetChanged")
+    private fun getLeaveRequestList(status: String) = CoroutineScope(Dispatchers.IO).launch {
+        withContext(Dispatchers.Main) {
+            binding.progresslayoutHistoryFragment.visibility = View.VISIBLE
+        }
+        val dbRef = db.collection("Institutions").document(instituteId)
+            .collection("Employees").document(empphno).collection("Leaves")
+        val query = if (status.isNotBlank()) dbRef.whereEqualTo("status", status).orderBy("timestamp", Query.Direction.DESCENDING).limit(limit.toLong())
+        else dbRef.orderBy("timestamp", Query.Direction.DESCENDING).limit(limit.toLong())
+        val newLeaveRequestList = mutableListOf<LeaveRequest>()
+
+        try {
+            querySnapshot = query.get().await()
+            querySnapshot!!.documents.mapNotNullTo(newLeaveRequestList) { doc ->
+                doc.toObject<LeaveRequest>()
+            }
+            withContext(Dispatchers.Main){
+                leaveRequestList.clear()
+                tempArrayList.clear()
+            }
+            if (newLeaveRequestList.isEmpty()) {
+                UtilFunctions.showToast(activity as Context,"No leaves found")
+            } else {
+                val arrayList = ArrayList(newLeaveRequestList)
+                withContext(Dispatchers.Main) {
+                    leaveRequestList.addAll(arrayList)
+                    tempArrayList.addAll(arrayList)
+                }
+            }
+            withContext(Dispatchers.Main) {
+                binding.recyclerviewAllLeaveRequests.adapter?.notifyDataSetChanged()
+            }
+        } catch (e: Exception) {
+            UtilFunctions.showToast(activity as Context, e.message ?: "Error fetching leave requests")
+        } finally {
+            withContext(Dispatchers.Main) {
+                binding.progresslayoutHistoryFragment.visibility = View.GONE
+                binding.swipeToRefreshAllLeaves.isRefreshing = false
+            }
+        }
+    }
+
+    private fun showDatePicker(view: EditText) {
+        val c = android.icu.util.Calendar.getInstance()
+        val year = c.get(android.icu.util.Calendar.YEAR)
+        val month = c.get(android.icu.util.Calendar.MONTH)
+        val day = c.get(android.icu.util.Calendar.DAY_OF_MONTH)
+
+        // Create a DatePickerDialog with custom style
+        val datePickerDialog = DatePickerDialog(
+            requireContext(),
+            { _: DatePicker?, year: Int, month: Int, dayOfMonth: Int ->
+                val selectedDate = LocalDate.of(year, month + 1, dayOfMonth)
+                val formattedDate = selectedDate.format(
+                    DateTimeFormatter.ofPattern(
+                        "dd-MM-yyyy",
+                        Locale.getDefault()
+                    )
+                )
+                view.setText(formattedDate)
+                getDateLeaveRequestList(formattedDate)
+            },
+            year,
+            month,
+            day
+        )
+        datePickerDialog.show()
+        binding.LeaveRequestsStatusSpinner.isEnabled = false
     }
 
     private fun exportXlsFile(leavesList: ArrayList<LeaveRequest>) = CoroutineScope(Dispatchers.IO).launch {

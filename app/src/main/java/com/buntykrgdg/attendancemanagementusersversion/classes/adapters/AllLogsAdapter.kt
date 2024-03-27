@@ -11,6 +11,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.buntykrgdg.attendancemanagementusersversion.activities.LogsActivity
 import com.buntykrgdg.attendancemanagementusersversion.R
+import com.buntykrgdg.attendancemanagementusersversion.objects.UtilFunctions
 
 class AllLogsAdapter (val context: Context, private val allLogsList:ArrayList<String>): RecyclerView.Adapter<AllLogsAdapter.AllLogsViewHolder>(){
     class AllLogsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -30,12 +31,11 @@ class AllLogsAdapter (val context: Context, private val allLogsList:ArrayList<St
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: AllLogsViewHolder, position: Int) {
         val log = allLogsList[position]
-        holder.txtDate.text = log
+        holder.txtDate.text = UtilFunctions.millisToDate(log.toLong())
         holder.logsItem.setOnClickListener {
             val intent = Intent(context, LogsActivity::class.java)
             intent.putExtra("date", log)
             context.startActivity(intent)
         }
     }
-
 }

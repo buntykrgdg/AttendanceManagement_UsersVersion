@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -16,13 +15,13 @@ import com.buntykrgdg.attendancemanagementusersversion.databinding.FragmentNotic
 import com.buntykrgdg.attendancemanagementusersversion.objects.UtilFunctions
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.ktx.toObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import java.util.Locale
 
 class NoticesFragment : Fragment() {
     private lateinit var layoutManager: RecyclerView.LayoutManager
@@ -32,12 +31,17 @@ class NoticesFragment : Fragment() {
     private val db = FirebaseFirestore.getInstance()
     private lateinit var instituteId: String
 
+    private var currentPage = 0
+    private val limit = 4
+    private var isLoadingMore = false
+    private var querySnapshot: QuerySnapshot? = null
+
     private var fragmentNoticesBinding: FragmentNoticesBinding? = null
     private val binding get() = fragmentNoticesBinding!!
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         fragmentNoticesBinding = FragmentNoticesBinding.inflate(inflater, container, false)
         
         layoutManager= LinearLayoutManager(activity as Context)
@@ -53,35 +57,56 @@ class NoticesFragment : Fragment() {
         binding.swipeToRefreshAllNotices.setOnRefreshListener {
             getAllNoticesList()
         }
+        binding.recyclerviewAllNotices.addOnScrollListener(scrollListener)
         getAllNoticesList()
 
-        binding.searchviewAllNotices.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                return false
-            }
-
-            @SuppressLint("NotifyDataSetChanged")
-            override fun onQueryTextChange(newText: String?): Boolean {
-                tempArrayList.clear()
-                val searchText = newText!!.lowercase(Locale.getDefault())
-
-                if (searchText.isNotEmpty()){
-                    allNoticesList.forEach{
-                        if (it.message?.lowercase(Locale.getDefault())?.contains(searchText) == true){
-                            tempArrayList.add(it)
-                        }
-                    }
-                    binding.recyclerviewAllNotices.adapter?.notifyDataSetChanged()
-                }
-                else{
-                    tempArrayList.clear()
-                    tempArrayList.addAll(allNoticesList)
-                    binding.recyclerviewAllNotices.adapter?.notifyDataSetChanged()
-                }
-                return false
-            }
-        })
         return binding.root
+    }
+
+    private val scrollListener = object : RecyclerView.OnScrollListener() {
+        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+            super.onScrolled(recyclerView, dx, dy)
+            val isAtEnd = !recyclerView.canScrollVertically(1) // Check for scrolling down
+            if (isAtEnd && !isLoadingMore) {
+                isLoadingMore = true
+                loadMoreData()
+            }
+        }
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    private fun loadMoreData() {
+        binding.progresslayoutAllNotices.visibility = View.VISIBLE
+        val lastDocument = querySnapshot?.documents?.lastOrNull()
+        if(lastDocument == null){
+            isLoadingMore = false
+            binding.progresslayoutAllNotices.visibility = View.GONE
+            return
+        }
+        val dbRef = db.collection("Institutions").document(instituteId)
+            .collection("Notices").orderBy("timestamp", Query.Direction.DESCENDING).limit(limit.toLong()).startAfter(lastDocument)
+        currentPage++
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                querySnapshot = dbRef.get().await()
+                if (querySnapshot!!.isEmpty) {
+                    // No more data available
+                    return@launch
+                }
+                val nextLeaveRequestList = querySnapshot!!.toObjects(Notice::class.java)
+                withContext(Dispatchers.Main) {
+                    tempArrayList.addAll(nextLeaveRequestList)
+                    binding.recyclerviewAllNotices.adapter?.notifyDataSetChanged()
+                }
+            } catch (e: Exception) {
+                // Handle error
+            } finally {
+                isLoadingMore = false // Reset flag after successful update
+                withContext(Dispatchers.Main) {
+                    binding.progresslayoutAllNotices.visibility = View.GONE
+                }
+            }
+        }
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -91,12 +116,11 @@ class NoticesFragment : Fragment() {
         val dbRef = db.collection("Institutions")
             .document(instituteId)
             .collection("Notices")
-            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .orderBy("timestamp", Query.Direction.DESCENDING).limit(limit.toLong())
         try{
-            val querySnapshot = dbRef.get().await()
-            val allNoticesList = querySnapshot.documents.mapNotNull { it.toObject<Notice>() }
+            querySnapshot = dbRef.get().await()
+            val allNoticesList = querySnapshot!!.documents.mapNotNull { it.toObject<Notice>() }
             tempArrayList.addAll(allNoticesList)
-            UtilFunctions.sortNoticeByTimestamp(tempArrayList)
         }catch (e: Exception) {
             UtilFunctions.showToast(activity as Context, e.message ?: "Error fetching logs")
         }finally {

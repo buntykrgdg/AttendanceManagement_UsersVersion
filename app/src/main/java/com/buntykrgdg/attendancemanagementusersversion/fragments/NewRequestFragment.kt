@@ -2,7 +2,6 @@ package com.buntykrgdg.attendancemanagementusersversion.fragments
 
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
-import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -11,7 +10,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.ArrayAdapter
+import android.widget.DatePicker
+import android.widget.EditText
+import android.widget.RadioButton
 import androidx.fragment.app.Fragment
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
@@ -31,13 +33,19 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 class NewRequestFragment : Fragment() {
     private var fragmentNewRequestBinding: FragmentNewRequestBinding? = null
@@ -260,17 +268,15 @@ class NewRequestFragment : Fragment() {
                     activity as Context,
                     "You don't have sufficient leaves")
             } else {
-                val currentTimeMillis = System.currentTimeMillis()
-                val sdf = SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss a", Locale.getDefault())
-                val formattedDateTime = sdf.format(Date(currentTimeMillis))
+                val (timestamp, formattedDate) = UtilFunctions.getTimestampAndDate()
                 val databaseref1 =
                     Firebase.firestore.collection("Institutions/${instituteid}/Leaves")
-                        .document(formattedDateTime)
+                        .document(timestamp)
                 val databaseref2 =
                     Firebase.firestore.collection("Institutions/$instituteid/Employees/$empphno/Leaves")
-                        .document(formattedDateTime)
+                        .document(timestamp)
                 val leaveRequest = LeaveRequest(
-                    formattedDateTime,
+                    timestamp, formattedDate,
                     empphno, empid, instituteid, empname, empdepartment, empdesignation,
                     binding.halfdayleavedate.text.toString(),
                     halfdaysession,
@@ -357,17 +363,15 @@ class NewRequestFragment : Fragment() {
                     activity as Context,
                     "You don't have sufficient leaves")
             } else {
-                val currentTimeMillis = System.currentTimeMillis()
-                val sdf = SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss a", Locale.getDefault())
-                val formattedDateTime = sdf.format(Date(currentTimeMillis))
+                val (timestamp, formattedDate) = UtilFunctions.getTimestampAndDate()
                 val databaseref1 =
                     Firebase.firestore.collection("Institutions/${instituteid}/Leaves")
-                        .document(formattedDateTime)
+                        .document(timestamp)
                 val databaseref2 =
                     Firebase.firestore.collection("Institutions/$instituteid/Employees/$empphno/Leaves")
-                        .document(formattedDateTime)
+                        .document(timestamp)
                 val leaveRequest = LeaveRequest(
-                    formattedDateTime,
+                    timestamp, formattedDate,
                     empphno, empid, instituteid, empname, empdepartment, empdesignation,
                     binding.onedayleavedate.text.toString(),
                     "morning",
@@ -502,17 +506,15 @@ class NewRequestFragment : Fragment() {
             ) UtilFunctions.showToast(activity as Context, "Invalid 'From' and 'To' date")
             else if (binding.txtMoreThanOneDayNote.visibility == View.VISIBLE) UtilFunctions.showToast(activity as Context, "You don't have sufficient leaves")
             else {
-                val currentTimeMillis = System.currentTimeMillis()
-                val sdf = SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss a", Locale.getDefault())
-                val formattedDateTime = sdf.format(Date(currentTimeMillis))
+                val (timestamp, formattedDate) = UtilFunctions.getTimestampAndDate()
                 val databaseref1 =
                     Firebase.firestore.collection("Institutions/${instituteid}/Leaves")
-                        .document(formattedDateTime)
+                        .document(timestamp)
                 val databaseref2 =
                     Firebase.firestore.collection("Institutions/$instituteid/Employees/$empphno/Leaves")
-                        .document(formattedDateTime)
+                        .document(timestamp)
                 val leaveRequest = LeaveRequest(
-                    formattedDateTime,
+                    timestamp, formattedDate,
                     empphno, empid, instituteid, empname, empdepartment, empdesignation,
                     binding.leavefromdate.text.toString(),
                     MorethanOnedayFromselected,
@@ -578,21 +580,19 @@ class NewRequestFragment : Fragment() {
                 binding.progressbarofNewRequest.visibility = View.VISIBLE
             }
             try {
-                val folderName = getDate()
-                val currentTimeMillis = System.currentTimeMillis()
-                val sdf = SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss a", Locale.getDefault())
-                val formattedDateTime = sdf.format(Date(currentTimeMillis))
+                val (timestamp, _) = UtilFunctions.getTimestampAndDate()
+                val date = (System.currentTimeMillis() - System.currentTimeMillis() % (24 * 60 * 60 * 1000)).toString()
                 val map = mutableMapOf<String, Any>()
-                map["Date"] = folderName
+                map["Date"] = date
                 val databaseRef1 =
                     Firebase.firestore.collection("Institutions/${instituteid}/Employees/${empphno}/Logs")
-                        .document(folderName)
+                        .document(date)
                 databaseRef1.set(map, SetOptions.merge()).await()
                 val databaseRef2 =
-                    Firebase.firestore.collection("Institutions/${instituteid}/Employees/${empphno}/Logs/${folderName}/CheckInCheckOut")
-                        .document(formattedDateTime)
+                    Firebase.firestore.collection("Institutions/${instituteid}/Employees/${empphno}/Logs/$date/CheckInCheckOut")
+                        .document(timestamp)
                 val newLog = CheckInOutLog(
-                    formattedDateTime.toString(),
+                    timestamp,
                     reason,
                     status
                 )

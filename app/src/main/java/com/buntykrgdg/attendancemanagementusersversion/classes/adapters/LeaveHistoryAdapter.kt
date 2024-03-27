@@ -47,7 +47,7 @@ class LeaveHistoryAdapter (val context: Context, private val instId: String, pri
     override fun onBindViewHolder(holder: LeaveRequestViewHolder, position: Int) {
         holder.btnDeleteRequest.visibility = View.GONE
         val leaveRequest = leaveRequestList[position]
-        holder.leaveDate.text = leaveRequest.timestamp
+        holder.leaveDate.text = leaveRequest.timestamp?.let { UtilFunctions.millisToString(it) }
         holder.leaveReason.text = leaveRequest.reason
         holder.leaveStatus.text = leaveRequest.status
         holder.fromDate.text = leaveRequest.fromdate
